@@ -1,0 +1,43 @@
+Country,Variety,AvgPoint,AvgPrice
+Argentina,['Malbec'],86.71,24.51
+Armenia,"['Rosé', 'Kangoun']",87.5,14.5
+Australia,['Shiraz'],88.6,35.44
+Austria,['Grüner Veltliner'],90.19,30.76
+Bosnia and Herzegovina,"['Vranec', 'Blatina']",86.5,12.5
+Brazil,['Merlot'],84.66,23.77
+Bulgaria,['Red Blend'],87.94,14.65
+Canada,['Riesling'],89.38,35.71
+Chile,['Cabernet Sauvignon'],86.5,20.79
+China,['Cabernet Blend'],89.0,18.0
+Croatia,['Plavac Mali'],87.35,25.45
+Cyprus,['White Blend'],87.18,16.27
+Czech Republic,"['Sauvignon Blanc', 'Cabernet Moravia', 'Red Blend']",87.25,24.25
+England,['Sparkling Blend'],91.55,51.68
+France,['Bordeaux-style Red Blend'],88.73,41.14
+Georgia,['Saperavi'],87.68,19.32
+Germany,['Riesling'],89.84,42.26
+Greece,['White Blend'],87.29,22.36
+Hungary,['Furmint'],89.17,40.65
+India,['Shiraz'],90.22,13.33
+Israel,['Cabernet Sauvignon'],88.5,31.77
+Italy,['Red Blend'],88.62,39.66
+Lebanon,['Red Blend'],87.69,30.69
+Luxembourg,"['Riesling', 'Sparkling Blend']",88.67,23.33
+Macedonia,"['Vranec', 'Pinot Noir']",86.83,15.58
+Mexico,['Red Blend'],85.26,26.79
+Moldova,['Red Blend'],87.2,16.75
+Morocco,['Red Blend'],88.57,19.5
+New Zealand,['Sauvignon Blanc'],88.31,26.93
+Peru,['Red Blend'],83.56,18.06
+Portugal,['Portuguese Red'],88.32,26.22
+Romania,['Cabernet Sauvignon'],86.4,15.24
+Serbia,"['Riesling', 'Red Blend']",87.5,24.5
+Slovakia,['Riesling'],87.0,16.0
+Slovenia,"['Sauvignon Blanc', 'Ribolla Gialla']",88.01,24.81
+South Africa,['Sauvignon Blanc'],87.83,24.67
+Spain,['Tempranillo'],87.29,28.22
+Switzerland,['Pinot Noir'],88.57,85.29
+Turkey,['Red Blend'],88.09,24.63
+US,['Pinot Noir'],88.57,36.57
+Ukraine,['Sparkling Blend'],84.07,9.21
+Uruguay,['Tannat'],86.75,26.4

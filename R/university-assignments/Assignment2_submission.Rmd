@@ -1,0 +1,647 @@
+---
+title: "R Notebook"
+output:
+  html_notebook: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+```{r, include=FALSE}
+# Packages required to run this document:
+# tidyverse
+# magrittr
+# fitdistrplus
+# gridExtra
+# broom
+# quantreg
+# rnoaa
+# mgcv
+# stats
+# RcppRoll
+```
+
+# Task 1
+
+2. 
+
+```{r}
+start_of_time_period = "2013-07-01"
+end_of_time_period = "2014-06-30"
+
+list_of_dates <- list(list(start_of_time_period,
+                           format(as.Date(start_of_time_period)+333,"%Y-%m-%d")
+                           ),
+                      list(format(as.Date(start_of_time_period)+334,"%Y-%m-%d"),
+                           end_of_time_period
+                           )
+                      )
+
+# Set up token to import data
+options(noaakey = "ianvOETKELsgyfqVXITFNRijdgeJPBMR")
+
+library(rnoaa)
+first = TRUE
+for(x in list_of_dates){
+    if (first == TRUE) {
+        daily_temp <- ncdc(
+            datasetid = 'GHCND',
+            stationid = 'GHCND:ASN00009225',
+            startdate = x[1],
+            enddate = x[2],
+            limit = 1000,
+            units = "metric"
+        )$data
+    } else {
+      daily_temp <- daily_temp %>%
+            bind_rows(
+              ncdc(
+            datasetid = 'GHCND',
+            stationid = 'GHCND:ASN00009225',
+            startdate = x[1],
+            enddate = x[2],
+            limit = 1000,
+            units = "metric"
+        )$data
+        )
+    }
+    first = FALSE
+}
+
+# Tidy the data
+daily_temp <- daily_temp %>%
+  spread(datatype,value) %>%
+  mutate(date = as.Date(date,format = "%Y-%m-%dT%H:%M:%S"),
+         PRCP = PRCP/10,
+         TMAX = TMAX/10,
+         TMIN = TMIN/10
+         ) %>%
+  dplyr::select(date,PRCP,TMAX,TMIN) %>%
+  distinct()
+
+```
+
+# Task 3.1
+
+2. 
+
+Preparing Data for Model Fitting
+
+```{r, import-data, include=FALSE}
+# Import and modify hospital data (from Assignment 1)
+library(tidyverse)
+library(magrittr)
+library(fitdistrplus)
+library(gridExtra)
+
+# Remove redundant header row
+ed_data_link <- 'govhack3.csv'
+top_row <- read_csv(ed_data_link, col_names = FALSE, n_max = 1)
+second_row <- read_csv(ed_data_link, n_max = 1)
+
+column_names <- second_row %>% 
+  unlist(., use.names=FALSE) %>% 
+  make.unique(., sep = "__") # double underscore
+
+column_names[2:8] <- str_c(column_names[2:8], '0', sep='__')
+
+daily_attendance <- 
+  read_csv(ed_data_link, skip = 2, col_names = column_names)
+
+# Gather and spread daily attendance data to create tidy data
+daily_attendance <- daily_attendance %>%
+  gather(key = "classified_as",
+         value = "count_of_people",
+         -Date) %>%
+  separate(classified_as,
+           into = c("type_of_visit","Hospital"),
+           sep = "__") %>%
+  spread(key = type_of_visit,
+         value = count_of_people) %>%
+  mutate(Hospital = 
+           factor(Hospital,
+                  levels = c(0,1,2,3,4,5,6,7,8),
+                  labels = c("Royal Perth Hospital",
+                             "Fremantle Hospital",
+                             "Princess Margaret Hospital For Children",
+                             "King Edward Memorial Hospital For Women",
+                             "Sir Charles Gairdner Hospital",
+                             "Armadale/Kelmscott District Memorial Hospital",
+                             "Swan District Hospital",
+                             "Rockingham General Hospital",
+                             "Joondalup Health Campus"))) %>%
+  dplyr::select(Date,Hospital,Attendance,Admissions,Tri_1,Tri_2,Tri_3,Tri_4,Tri_5)
+
+# Changing the data types
+daily_attendance <- daily_attendance %>%
+  mutate(Date = as.Date(Date,"%d-%b-%Y")) %>%
+  mutate(Attendance = as.integer(Attendance)) %>%
+  mutate(Admissions = as.integer(Admissions)) %>%
+  mutate(Tri_1 = as.integer(Tri_1)) %>%
+  mutate(Tri_2 = as.integer(Tri_2)) %>%
+  mutate(Tri_3 = as.integer(Tri_3)) %>%
+  mutate(Tri_4 = as.integer(Tri_4)) %>%
+  mutate(Tri_5 = as.integer(Tri_5))
+
+# Missing values
+daily_attendance <- daily_attendance %>%
+  replace_na(list(Attendance = 0,
+                  Admissions = 0,
+                  Tri_1 = 0,
+                  Tri_2 = 0,
+                  Tri_3 = 0,
+                  Tri_4 = 0,
+                  Tri_5 = 0))
+
+# Extract Fremantle Hospital Data
+fremantle_daily_attendance <- daily_attendance %>%
+  filter(Hospital == 'Fremantle Hospital') %>%
+  dplyr::select(Date, 
+         Attendance, 
+         Admissions, 
+         Tri_1, 
+         Tri_2, 
+         Tri_3, 
+         Tri_4, 
+         Tri_5)
+```
+
+Fitting Linear Model
+
+```{r, linear-model-date-Y, include=FALSE}
+lm_date_attendance <- lm(formula = Attendance~Date,data = fremantle_daily_attendance)
+```
+
+Plot of Linear Model
+
+```{r, plot-linear-model-date-Y, echo = FALSE}
+fremantle_daily_attendance %>%
+  ggplot(mapping = aes(x = Date,
+                       y = Attendance)) +
+  geom_point(alpha = 1/10) + 
+  geom_smooth(method = "lm",
+              color = "firebrick") +
+  expand_limits(y=0)
+```
+
+Plot of Linear Model Residuals
+
+```{r, lm-1-residuals}
+library(broom)
+lm_date_attendance_results <- lm_date_attendance %>%
+  augment
+
+lm_date_attendance_results %>%
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point()
+```
+
+Linear Model Summary
+
+```{r}
+summary(lm_date_attendance)
+```
+
+QQ Plot of Linear Model
+
+```{r, lm-1-residual-qq-plot}
+lm_date_attendance_results %>%
+  ggplot(aes(sample = .std.resid)) + 
+  geom_qq() + 
+  geom_qq_line(col = "steelblue")
+```
+
+Plot of Linear Model Fitted Values Vs Residuals
+
+```{r, lm-1-fitted-vs-residuals, warning=FALSE, message=FALSE}
+library(quantreg)
+lm_date_attendance_results %>%
+  ggplot(aes(x=.fitted,y=.resid)) + 
+  geom_point() + 
+  geom_quantile() + 
+  geom_smooth(color = "firebrick")
+```
+
+Plot of Linear Model Residual Vs Leverage
+
+```{r, lm-1-residual-vs-leverage}
+lm_date_attendance_results %>%
+  ggplot(aes(x = .hat,y = .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0,
+             linetype = 'dotted')
+```
+
+Cook's Plot for Linear Model
+
+```{r, lm-1-cooks-distance}
+lm_date_attendance_results %>%
+  mutate(high_leverage = .hat > 0.01) %>%
+  ggplot(aes(x = .hat, y = .cooksd)) + 
+  geom_point(aes(color = high_leverage)) + 
+  geom_hline(yintercept = 0,
+             linetype = 'dotted')
+```
+
+3. 
+
+Fitting GAM
+
+```{r}
+library(mgcv)
+gam_date_attendance <- gam(formula = Attendance ~ s(as.integer(Date)), 
+                           data = fremantle_daily_attendance,
+                           method = "REML")
+
+library(broom)
+gam_date_attendance_results <- gam_date_attendance %>%
+  augment
+```
+
+Plot of GAM
+
+```{r}
+fremantle_daily_attendance %>%
+  ggplot(mapping = aes(x = Date,
+                       y = Attendance)) +
+  geom_point(alpha = 1/10) + 
+  geom_smooth(method = "gam",
+              formula = y ~ s(x),
+              color = "firebrick") + 
+  expand_limits(y=0)
+```
+
+Plot of GAM Residuals
+
+```{r, gam-1-residuals}
+gam_date_attendance_results %>%
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_quantile() + 
+  geom_smooth(color = "firebrick")
+```
+
+GAM Summary
+
+```{r}
+summary(gam_date_attendance)
+```
+
+4. 
+
+Prepare Data for Model Fitting
+
+```{r}
+fremantle_daily_attendance_mutated <- fremantle_daily_attendance %>%
+  mutate(Day = weekdays(Date))
+
+fremantle_daily_attendance_mutated$Day <- fremantle_daily_attendance_mutated$Day %>%
+  recode(.,
+         "Monday"=1,
+         "Tuesday"=2,
+         "Wednesday"=3,
+         "Thursday"=4,
+         "Friday"=5,
+         "Saturday"=6,
+         "Sunday"=7)
+```
+
+Fitting Augmented GAM
+
+```{r}
+library(mgcv)
+gam_date_attendance_weekly <- gam(formula = Attendance ~ s(Day, k=7) + s(as.integer(Date)), 
+                           data = fremantle_daily_attendance_mutated,
+                           method = "REML")
+
+library(broom)
+gam_date_attendance_results_weekly <- gam_date_attendance_weekly %>%
+  augment
+```
+
+Plot of Augmented GAM
+
+```{r}
+ggplot() + 
+  geom_point(data = fremantle_daily_attendance_mutated,
+             mapping = aes(x = Date,y = Attendance)) + 
+  geom_line(data = gam_date_attendance_results_weekly,
+            mapping = aes(x=as.Date(as.integer.Date.,
+                                    origin="1970-01-01"),
+                          y=.fitted),
+            colour="red")
+```
+
+Summary of Augmented GAM
+
+```{r}
+summary(gam_date_attendance_weekly)
+```
+
+
+AIC's:
+
+```{r}
+library(stats)
+
+sprintf("AIC for the linear model: %s",AIC(lm_date_attendance))
+sprintf("AIC for the initial GAM model: %s",AIC(gam_date_attendance))
+sprintf("AIC for the initial GAM model: %s",AIC(gam_date_attendance_weekly))
+```
+
+5. 
+
+Plot of Fitted Values Vs Residuals for Augmented GAM
+
+```{r, gam-weekly-1-fitted-vs-residuals, warning=FALSE, message=FALSE}
+library(quantreg)
+gam_date_attendance_results_weekly %>%
+  ggplot(aes(x=.fitted,y=.resid)) + 
+  geom_point() + 
+  geom_quantile() + 
+  geom_smooth(color = "firebrick")
+```
+
+QQ Plot of Augmented GAM
+
+```{r, gam-weekly-1-residual-qq-plot}
+gam_date_attendance_results_weekly %>%
+  ggplot(aes(sample = .resid)) + 
+  geom_qq() + 
+  geom_qq_line(col = "steelblue")
+```
+
+6. 
+
+Changing day-of-the-week to ordinal and checking against previously constructed GAM which used day-of-the-week as numeric
+
+```{r}
+fremantle_daily_attendance_mutated <- fremantle_daily_attendance %>%
+  mutate(Day = weekdays(Date))
+
+fremantle_daily_attendance_mutated$Day <- factor(
+  fremantle_daily_attendance_mutated$Day,
+  levels = c("Monday",
+             "Tuesday",
+             "Wednesday",
+             "Thursday",
+             "Friday",
+             "Saturday",
+             "Sunday")
+)
+
+library(mgcv)
+gam_date_attendance_weekly_ordinal <- gam(formula = Attendance ~ s(as.integer(Day), k=7) +
+                                                s(as.integer(Date)),
+                                              data = fremantle_daily_attendance_mutated,
+                                              method = "REML")
+
+library(broom)
+gam_date_attendance_results_weekly_ordinal <- gam_date_attendance_weekly_categorical %>%
+  augment
+
+gam_date_attendance_results_weekly == gam_date_attendance_results_weekly_ordinal
+```
+
+# Task 4.1
+
+2. 
+
+Calculating EHF
+
+```{r}
+# Set up token to import data
+options(noaakey = "ianvOETKELsgyfqVXITFNRijdgeJPBMR")
+
+library(rnoaa)
+
+# Create list of dates for which I want the data
+list_of_dates <- list(list('2013-06-01',
+                           '2014-04-30'
+                           ),
+                      list('2014-05-01',
+                           '2014-07-03'
+                           )
+                      )
+
+# Use list of dates to create the NOAA Perth Weather dataframe
+first = TRUE
+for(x in list_of_dates){
+    if (first == TRUE) {
+        daily_temp <- ncdc(
+            datasetid = 'GHCND',
+            stationid = 'GHCND:ASN00009225',
+            startdate = x[1],
+            enddate = x[2],
+            limit = 1000,
+            units = "metric"
+        )$data
+    } else {
+      daily_temp <- daily_temp %>%
+            bind_rows(
+              ncdc(
+            datasetid = 'GHCND',
+            stationid = 'GHCND:ASN00009225',
+            startdate = x[1],
+            enddate = x[2],
+            limit = 1000,
+            units = "metric"
+        )$data
+        )
+    }
+    first = FALSE
+}
+
+daily_temp <- daily_temp %>%
+  spread(datatype,value) %>%
+  mutate(date = as.Date(date,format = "%Y-%m-%dT%H:%M:%S"),
+         PRCP = PRCP/10,
+         TMAX = TMAX/10,
+         TMIN = TMIN/10
+         ) %>%
+  dplyr::select(date,PRCP,TMAX,TMIN)
+
+# Calculate Daily Mean Temperature (DMT) 
+daily_temp <- daily_temp %>% 
+  mutate(DMT = (TMAX+TMIN)/2) 
+
+library(RcppRoll)
+
+# Calculate the T95 using Temperature data between 1993 and Jun-2013
+# (This takes a while - Please be patient)
+start_date <- "1993-02-01"  # first date where NOAA data for Perth Metro is available
+end_date <- start_date  # to initate the loop for calculating T95, end date must be defined 
+first <- TRUE  # boolean variable for the first iteration
+while (end_date != "2013-05-31") {
+    end_date <- format(as.Date(start_date) + 333,"%Y-%m-%d")
+    
+    if (as.Date(end_date) >= as.Date("2013-06-01")) {
+        end_date <- format(as.Date("2013-05-31"),"%Y-%m-%d")
+    }
+    
+    all_temp <- ncdc(
+        datasetid = 'GHCND',
+        stationid = 'GHCND:ASN00009225',
+        startdate = start_date,
+        enddate = end_date,
+        limit = 1000,
+        units = "metric"
+    )$data %>%
+        spread(datatype,value) %>%
+        mutate(date = as.Date(date,format = "%Y-%m-%dT%H:%M:%S"),
+               PRCP = PRCP/10,
+               TMAX = TMAX/10,
+               TMIN = TMIN/10
+        ) %>%
+        dplyr::select(date,PRCP,TMAX,TMIN) %>%
+        mutate(DMT = (TMAX+TMIN)/2)
+    
+    if (first == TRUE) {
+      T95 <- mean(all_temp$DMT, na.rm = TRUE)
+      first <- FALSE
+    } else {
+      T95 <- (T95 + mean(all_temp$DMT, na.rm = TRUE))/2
+    }
+    
+    start_date <- end_date
+}
+
+
+# Calculate Excess Heat Indices 
+daily_temp <- daily_temp %>% 
+  mutate(EHI_SIG = roll_meanr(lead(DMT,n=2),3,na.rm = TRUE)-T95, 
+
+EHI_ACCL = roll_meanr(lead(DMT,n=2),3,na.rm = TRUE)-roll_meanr(lag(DMT),30,na.rm = TRUE)) 
+
+# Calculate Excess Heat Factor 
+daily_temp <- daily_temp %>% 
+  mutate(EHF = EHI_SIG*EHI_ACCL) 
+
+```
+
+Appending EHF to Fremantle Hospital Data
+
+```{r}
+# Add EHF to fremantle_daily_attendance and fremantle_daily_attendance_mutated using left join
+fremantle_daily_attendance <- fremantle_daily_attendance %>% 
+  left_join(dplyr::select(daily_temp,date,EHF),by=c("Date" = "date"))
+
+fremantle_daily_attendance_mutated <- fremantle_daily_attendance_mutated %>% 
+  left_join(dplyr::select(daily_temp,date,EHF),by=c("Date" = "date"))
+```
+
+Plot of EHF
+
+```{r}
+# Plot daily EHF
+fremantle_daily_attendance %>%
+  ggplot(aes(x=Date,y=EHF)) + 
+  geom_point()
+```
+
+# Task 4.2
+
+Creating Linear, GAM & Augmented GAM models with EHF included
+
+```{r}
+# Fit the linear model with date and EHF as independent variables
+lm_date_attendance_EHF <- lm(formula = Attendance~Date+EHF,data = fremantle_daily_attendance)
+
+library(broom)
+lm_date_attendance_results_EHF <- lm_date_attendance_EHF %>%
+  augment
+
+# Fit the GAM model with date and EHF as independent variables
+library(mgcv)
+gam_date_attendance_EHF <- gam(formula = Attendance ~ s(as.integer(Date)) + s(EHF), 
+                           data = fremantle_daily_attendance,
+                           method = "REML")
+
+library(broom)
+gam_date_attendance_EHF_results <- gam_date_attendance_EHF %>%
+  augment
+
+# Fit the GAM model with date, day of week and EHF as independent variables
+library(mgcv)
+gam_date_attendance_weekly_EHF <- gam(formula = Attendance ~ s(as.integer(Day), k=7) + s(as.integer(Date)) + s(EHF), 
+                           data = fremantle_daily_attendance_mutated,
+                           method = "REML")
+
+library(broom)
+gam_date_attendance_results_weekly_EHF <- gam_date_attendance_weekly_EHF %>%
+  augment
+```
+
+Plotting the models:
+
+The linear model augmented with EHF
+
+```{r}
+ggplot() + 
+  geom_point(data = fremantle_daily_attendance,
+             mapping = aes(x = Date,y = Attendance)) + 
+  geom_line(data = lm_date_attendance_results_EHF,
+            mapping = aes(x=as.Date(Date,
+                                    origin="1970-01-01"),
+                          y=.fitted),
+            colour="red")
+```
+
+The initial GAM model augmented with EHF
+
+```{r}
+ggplot() + 
+  geom_point(data = fremantle_daily_attendance,
+             mapping = aes(x = Date,y = Attendance)) + 
+  geom_line(data = gam_date_attendance_EHF_results,
+            mapping = aes(x=as.Date(as.integer.Date.,
+                                    origin="1970-01-01"),
+                          y=.fitted),
+            colour="red")
+```
+
+The intial GAM model augmented with weekday and EHF
+
+```{r}
+ggplot() + 
+  geom_point(data = fremantle_daily_attendance_mutated,
+             mapping = aes(x = Date,y = Attendance)) + 
+  geom_line(data = gam_date_attendance_results_weekly_EHF,
+            mapping = aes(x=as.Date(as.integer.Date.,
+                                    origin="1970-01-01"),
+                          y=.fitted),
+            colour="red")
+```
+
+Examining the model summaries
+
+Linear Model Summary
+
+```{r}
+summary(lm_date_attendance_EHF)
+```
+
+GAM with EHF Summary
+
+```{r}
+summary(gam_date_attendance_EHF)
+```
+
+Augmented GAM with EHF Summary
+
+```{r}
+summary(gam_date_attendance_weekly_EHF)
+```
+
+Model AIC's (all models)
+
+```{r}
+library(stats)
+
+sprintf("AIC for the linear model: %s",AIC(lm_date_attendance))
+sprintf("AIC for the linear model augmented with EHF: %s",AIC(lm_date_attendance_EHF))
+sprintf("AIC for the initial GAM model: %s",AIC(gam_date_attendance))
+sprintf("AIC for the initial GAM model augmented with EHF: %s",AIC(gam_date_attendance_EHF))
+sprintf("AIC for the initial GAM model augmented with day of the week: %s",AIC(gam_date_attendance_weekly))
+sprintf("AIC for the initial GAM model augmented with day of the week and EHF: %s",AIC(gam_date_attendance_weekly_EHF))
+```
