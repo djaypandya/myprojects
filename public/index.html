@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day Pilot</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Day Pilot</h1>
+    <nav class="nav">
+      <button data-view="chat" class="nav-btn active">Chat</button>
+      <button data-view="today" class="nav-btn">Today</button>
+      <button data-view="backlog" class="nav-btn">Backlog</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="chat" class="view">
+      <div id="chat-thread" class="chat-thread"></div>
+      <form id="chat-form" class="chat-form">
+        <input type="text" id="chat-input" placeholder="Tell your chief of staff what's up" required />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+
+    <section id="today" class="view hidden">
+      <div id="current-step" class="card"></div>
+      <div>
+        <h2>MITs</h2>
+        <div id="today-mits" class="grid"></div>
+      </div>
+      <div>
+        <h2>If there's time</h2>
+        <div id="today-extra" class="grid"></div>
+      </div>
+    </section>
+
+    <section id="backlog" class="view hidden">
+      <div>
+        <h2>This Week's Outcomes</h2>
+        <div id="weekly-outcomes" class="stack"></div>
+      </div>
+      <div>
+        <h2>Someday Outcomes</h2>
+        <div id="someday-outcomes" class="stack"></div>
+      </div>
+      <div>
+        <h2>Someday Steps</h2>
+        <div id="someday-steps" class="stack"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

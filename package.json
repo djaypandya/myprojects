@@ -1,0 +1,10 @@
+{
+  "name": "prod-chat-prototype",
+  "version": "1.0.0",
+  "description": "Minimal productivity app with chat-driven task manager",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}
