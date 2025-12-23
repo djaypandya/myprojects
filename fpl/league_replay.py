@@ -107,8 +107,8 @@ def generate_league_gif(df, highlight_config, progress_callback=None):
             yaxis=dict(range=[df['Rank'].max() + 1, 0]),
             template="plotly_dark",
             margin=dict(l=50, r=50, t=50, b=50),
-            width=800,
-            height=600
+            width=600,
+            height=450
         )
         
         # Render to Image

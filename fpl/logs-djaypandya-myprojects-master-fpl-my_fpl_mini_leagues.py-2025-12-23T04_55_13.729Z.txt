@@ -1,0 +1,547 @@
+
+[     UTC     ] Logs for myfplminileague.streamlit.app/
+────────────────────────────────────────────────────────────────────────────────────────
+[04:49:27] 🖥 Provisioning machine...
+[04:49:27] 🎛 Preparing system...
+[04:49:27] ⛓ Spinning up manager process...
+[04:49:30] 🚀 Starting up repository: 'myprojects', branch: 'master', main module: 'fpl/my_fpl_mini_leagues.py'
+[04:49:30] 🐙 Cloning repository...
+[04:49:34] 🐙 Cloning into '/mount/src/myprojects'...
+
+[04:49:34] 🐙 Cloned repository!
+[04:49:34] 🐙 Pulling code changes from Github...
+[04:49:35] 📦 Processing dependencies...
+
+──────────────────────────────────────── uv ───────────────────────────────────────────
+
+Using uv pip install.
+Using Python 3.13.9 environment at /home/adminuser/venv
+Resolved 58 packages in 734ms
+  × Failed to download and build `aiohttp==3.8.3`
+  ╰─▶ Build backend failed to build wheel through `build_wheel` (exit status:
+      1)
+
+      [stdout]
+      running bdist_wheel
+      running build
+      running build_py
+      creating build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_routedef.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/client_ws.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_response.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/payload_streamer.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/cookiejar.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_urldispatcher.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/resolver.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_protocol.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/typedefs.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_server.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/client.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/formdata.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/client_reqrep.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_fileresponse.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/connector.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/client_exceptions.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/base_protocol.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/helpers.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/streams.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/client_proto.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/worker.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/multipart.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_middlewares.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/payload.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/http_writer.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_log.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_app.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_exceptions.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/tracing.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/http_parser.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/test_utils.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_runner.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_request.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/http.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/hdrs.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/web_ws.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/abc.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/http_exceptions.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/log.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/http_websocket.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/tcp_helpers.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/__init__.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/pytest_plugin.py ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/locks.py -> build/lib.linux-x86_64-cpython-313/aiohttp
+      running egg_info
+      writing aiohttp.egg-info/PKG-INFO
+      writing dependency_links to aiohttp.egg-info/dependency_links.txt
+      writing requirements to aiohttp.egg-info/requires.txt
+      writing top-level names to aiohttp.egg-info/top_level.txt
+      reading manifest file 'aiohttp.egg-info/SOURCES.txt'
+      reading manifest template 'MANIFEST.in'
+      adding license file 'LICENSE.txt'
+      writing manifest file 'aiohttp.egg-info/SOURCES.txt'
+      copying aiohttp/_cparser.pxd ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/_find_header.pxd ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/_headers.pxi ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/_helpers.pyi ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/_helpers.pyx ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/_http_parser.pyx ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/_http_writer.pyx ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/_websocket.pyx ->
+      build/lib.linux-x86_64-cpython-313/aiohttp
+      copying aiohttp/py.typed -> build/lib.linux-x86_64-cpython-313/aiohttp
+      creating build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      copying aiohttp/.hash/_cparser.pxd.hash ->
+      build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      copying aiohttp/.hash/_find_header.pxd.hash ->
+      build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      copying aiohttp/.hash/_helpers.pyi.hash ->
+      build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      copying aiohttp/.hash/_helpers.pyx.hash ->
+      build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      copying aiohttp/.hash/_http_parser.pyx.hash ->
+      build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      copying aiohttp/.hash/_http_writer.pyx.hash ->
+      build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      copying aiohttp/.hash/_websocket.pyx.hash ->
+      build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      copying aiohttp/.hash/hdrs.py.hash ->
+      build/lib.linux-x86_64-cpython-313/aiohttp/.hash
+      running build_ext
+      building 'aiohttp._websocket' extension
+      creating build/temp.linux-x86_64-cpython-313/aiohttp
+      gcc -fno-strict-overflow -Wsign-compare -DNDEBUG -g -O3 -Wall
+      -fPIC -I/home/adminuser/.cache/uv/builds-v0/.tmpyFIEbW/include
+      -I/usr/local/include/python3.13 -c aiohttp/_websocket.c -o
+      build/temp.linux-x86_64-cpython-313/aiohttp/_websocket.o
+
+      [stderr]
+      *********************
+      * Accelerated build *
+      *********************
+      /home/adminuser/.cache/uv/builds-v0/.tmpyFIEbW/lib/python3.13/site-packages/setuptools/dist.py:759:
+      SetuptoolsDeprecationWarning: License classifiers are deprecated.
+      !!
+
+      
+      ********************************************************************************
+              Please consider removing the following classifiers in favor of a
+      SPDX license expression:
+
+              License :: OSI Approved :: Apache Software License
+
+              See
+      https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license
+      for details.
+      
+      ********************************************************************************
+
+      !!
+        self._finalize_license_expression()
+      warning: no files found matching 'aiohttp' anywhere in distribution
+      warning: no previously-included files matching '*.pyc' found anywhere
+      in distribution
+      warning: no previously-included files matching '*.pyd' found anywhere
+      in distribution
+      warning: no previously-included files matching '*.so' found anywhere
+      in distribution
+      warning: no previously-included files matching '*.lib' found anywhere
+      in distribution
+      warning: no previously-included files matching '*.dll' found anywhere
+      in distribution
+      warning: no previously-included files matching '*.a' found anywhere
+      in distribution
+      warning: no previously-included files matching '*.obj' found anywhere
+      in distribution
+      warning: no previously-included files found matching 'aiohttp/*.html'
+      no previously-included directories found matching 'docs/_build'
+      aiohttp/_websocket.c:826:1: warning: ‘Py_UNICODE’ is deprecated
+      [-Wdeprecated-declarations]
+        826 | static CYTHON_INLINE size_t __Pyx_Py_UNICODE_strlen(const
+      Py_UNICODE *u) {
+            | ^~~~~~
+      aiohttp/_websocket.c: In function ‘__Pyx_Py_UNICODE_strlen’:
+      aiohttp/_websocket.c:827:5: warning: ‘Py_UNICODE’ is deprecated
+      [-Wdeprecated-declarations]
+        827 |     const Py_UNICODE *u_end = u;
+            |     ^~~~~
+      aiohttp/_websocket.c: In function
+      ‘__pyx_pf_7aiohttp_10_websocket__websocket_mask_cython’:
+      aiohttp/_websocket.c:1475:3: warning: ‘Py_OptimizeFlag’ is deprecated
+      [-Wdeprecated-declarations]
+       1475 |   if (unlikely(!Py_OptimizeFlag)) {
+            |   ^~
+      In file included from /usr/local/include/python3.13/Python.h:77,
+                       from aiohttp/_websocket.c:6:
+      /usr/local/include/python3.13/cpython/pydebug.h:13:37: note: declared
+      here
+         13 | Py_DEPRECATED(3.12) PyAPI_DATA(int) Py_OptimizeFlag;
+            |                                     ^~~~~~~~~~~~~~~
+      aiohttp/_websocket.c: In function ‘__Pyx_get_tp_dict_version’:
+      aiohttp/_websocket.c:2680:5: warning: ‘ma_version_tag’ is deprecated
+      [-Wdeprecated-declarations]
+       2680 |     return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
+            |     ^~~~~~
+      In file included from /usr/local/include/python3.13/dictobject.h:101,
+                       from /usr/local/include/python3.13/Python.h:91:
+      /usr/local/include/python3.13/cpython/dictobject.h:25:34: note: declared
+      here
+         25 |     Py_DEPRECATED(3.12) uint64_t ma_version_tag;
+            |                                  ^~~~~~~~~~~~~~
+      aiohttp/_websocket.c: In function ‘__Pyx_get_object_dict_version’:
+      aiohttp/_websocket.c:2692:5: warning: ‘ma_version_tag’ is deprecated
+      [-Wdeprecated-declarations]
+       2692 |     return (dictptr && *dictptr) ?
+      __PYX_GET_DICT_VERSION(*dictptr) : 0;
+            |     ^~~~~~
+      /usr/local/include/python3.13/cpython/dictobject.h:25:34: note: declared
+      here
+         25 |     Py_DEPRECATED(3.12) uint64_t ma_version_tag;
+            |                                  ^~~~~~~~~~~~~~
+      aiohttp/_websocket.c: In function ‘__Pyx_object_dict_version_matches’:
+      aiohttp/_websocket.c:2696:5: warning: ‘ma_version_tag’ is deprecated
+      [-Wdeprecated-declarations]
+       2696 |     if (unlikely(!dict) || unlikely(tp_dict_version !=
+      __PYX_GET_DICT_VERSION(dict)))
+            |     ^~
+      /usr/local/include/python3.13/cpython/dictobject.h:25:34: note: declared
+      here
+         25 |     Py_DEPRECATED(3.12) uint64_t ma_version_tag;
+            |                                  ^~~~~~~~~~~~~~
+      aiohttp/_websocket.c: In function ‘__Pyx_CLineForTraceback’:
+      aiohttp/_websocket.c:2741:9: warning: ‘ma_version_tag’ is deprecated
+      [-Wdeprecated-declarations]
+       2741 |         __PYX_PY_DICT_LOOKUP_IF_MODIFIED(
+            |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      /usr/local/include/python3.13/cpython/dictobject.h:25:34: note: declared
+      here
+         25 |     Py_DEPRECATED(3.12) uint64_t ma_version_tag;
+            |                                  ^~~~~~~~~~~~~~
+      aiohttp/_websocket.c:2741:9: warning: ‘ma_version_tag’ is deprecated
+      [-Wdeprecated-declarations]
+       2741 |         __PYX_PY_DICT_LOOKUP_IF_MODIFIED(
+            |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      /usr/local/include/python3.13/cpython/dictobject.h:25:34: note: declared
+      here
+         25 |     Py_DEPRECATED(3.12) uint64_t ma_version_tag;
+            |                                  ^~~~~~~~~~~~~~
+      aiohttp/_websocket.c: In function ‘__Pyx_PyInt_As_long’:
+      aiohttp/_websocket.c:3042:53: error: ‘PyLongObject’ {aka ‘struct
+      _longobject’} has no member named ‘ob_digit’
+       3042 |             const digit* digits = ((PyLongObject*)x)->ob_digit;
+            |                                                     ^~
+      aiohttp/_websocket.c:3097:53: error: ‘PyLongObject’ {aka ‘struct
+      _longobject’} has no member named ‘ob_digit’
+       3097 |             const digit* digits = ((PyLongObject*)x)->ob_digit;
+            |                                                     ^~
+      aiohttp/_websocket.c:3183:27: error: too few arguments to function
+      ‘_PyLong_AsByteArray’
+       3183 |                 int ret = _PyLong_AsByteArray((PyLongObject *)v,
+            |                           ^~~~~~~~~~~~~~~~~~~
+      In file included from /usr/local/include/python3.13/longobject.h:107,
+                       from /usr/local/include/python3.13/Python.h:82:
+      /usr/local/include/python3.13/cpython/longobject.h:111:17: note:
+      declared here
+        111 | PyAPI_FUNC(int) _PyLong_AsByteArray(PyLongObject* v,
+            |                 ^~~~~~~~~~~~~~~~~~~
+      aiohttp/_websocket.c: In function ‘__Pyx_PyInt_As_int’:
+      aiohttp/_websocket.c:3238:53: error: ‘PyLongObject’ {aka ‘struct
+      _longobject’} has no member named ‘ob_digit’
+       3238 |             const digit* digits = ((PyLongObject*)x)->ob_digit;
+            |                                                     ^~
+      aiohttp/_websocket.c:3293:53: error: ‘PyLongObject’ {aka ‘struct
+      _longobject’} has no member named ‘ob_digit’
+       3293 |             const digit* digits = ((PyLongObject*)x)->ob_digit;
+            |                                                     ^~
+      aiohttp/_websocket.c:3379:27: error: too few arguments to function
+      ‘_PyLong_AsByteArray’
+       3379 |                 int ret = _PyLong_AsByteArray((PyLongObject *)v,
+            |                           ^~~~~~~~~~~~~~~~~~~
+      /usr/local/include/python3.13/cpython/longobject.h:111:17: note:
+      declared here
+        111 | PyAPI_FUNC(int) _PyLong_AsByteArray(PyLongObject* v,
+            |                 ^~~~~~~~~~~~~~~~~~~
+      aiohttp/_websocket.c: In function ‘__Pyx_PyIndex_AsSsize_t’:
+      aiohttp/_websocket.c:3744:45: error: ‘PyLongObject’ {aka ‘struct
+      _longobject’} has no member named ‘ob_digit’
+       3744 |     const digit* digits = ((PyLongObject*)b)->ob_digit;
+            |                                             ^~
+      error: command '/usr/bin/gcc' failed with exit code 1
+
+Checking if Streamlit is installed
+Installing rich for an improved exception logging
+Using uv pip install.
+Using Python 3.13.9 environment at /home/adminuser/venv
+Resolved 4 packages in 130ms
+Prepared 4 packages in 202ms
+Installed 4 packages in 19ms
+ + markdown-it-py==4.0.0
+ + mdurl==0.1.2
+ + pygments==2.19.2
+ + rich==[2025-12-23 04:49:40.107863] 14.2.0
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+
+──────────────────────────────────────── pip ───────────────────────────────────────────
+
+Using standard pip install.
+Collecting streamlit==1.51.0 (from -r /mount/src/myprojects/fpl/requirements.txt (line 1))
+  Downloading streamlit-1.51.0-py3-none-any.whl.metadata (9.5 kB)
+Collecting aiohttp==3.8.3 (from -r /mount/src/myprojects/fpl/requirements.txt (line 2))
+  Downloading aiohttp-3.8.3.tar.gz (7.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.3/7.3 MB 97.0 MB/s eta 0:00:00[2025-12-23 04:49:42.195941] 
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting altair==5.5.0 (from -r /mount/src/myprojects/fpl/requirements.txt (line 3))
+  Downloading altair-5.5.0-py3-none-any.whl.metadata (11 kB)
+Collecting certifi==2025.11.12 (from -r /mount/src/myprojects/fpl/requirements.txt (line 4))
+  Downloading certifi-2025.11.12-py3-none-any.whl.metadata (2.5 kB)
+Collecting numpy==1.26.4 (from -r /mount/src/myprojects/fpl/requirements.txt (line 5))
+  Downloading numpy-1.26.4.tar.gz (15.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.8/15.8 MB 207.9 MB/s eta 0:00:00[2025-12-23 04:49:45.706589] 
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): still running...
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting pandas==2.1.4 (from -r /mount/src/myprojects/fpl/requirements.txt (line 6))
+  Downloading pandas-2.1.4.tar.gz (4.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.3/4.3 MB 197.8 MB/s eta 0:00:00[2025-12-23 04:51:27.801702] 
+  Installing build dependencies: started
+  Installing build dependencies: still running...
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'error'
+  error: subprocess-exited-with-error
+  
+  × Preparing metadata (pyproject.toml) did not run successfully.
+  │ exit code: 1
+  ╰─> [125 lines of output]
+      + meson setup /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/.mesonpy-h80h_gms/build -Dbuildtype=release -Db_ndebug=if-release -Db_vscrt=md --vsenv --native-file=/tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/.mesonpy-h80h_gms/build/meson-python-native-file.ini
+      The Meson build system
+      Version: 1.2.1
+      Source dir: /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea
+      Build dir: /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/.mesonpy-h80h_gms/build
+      Build type: native build
+      Project name: pandas
+      Project version: 2.1.4
+      C compiler for the host machine: cc (gcc 12.2.0 "cc (Debian 12.2.0-14+deb12u1) 12.2.0")
+      C linker for the host machine: cc ld.bfd 2.40
+      C++ compiler for the host machine: c++ (gcc 12.2.0 "c++ (Debian 12.2.0-14+deb12u1) 12.2.0")
+      C++ linker for the host machine: c++ ld.bfd 2.40
+      Cython compiler for the host machine: cython (cython 0.29.37)
+      Host machine cpu family: x86_64
+      Host machine cpu: x86_64
+      Program python found: YES (/home/adminuser/venv/bin/python)
+      Did not find pkg-config by name 'pkg-config'
+      Found Pkg-config: NO
+      Run-time dependency python found: YES 3.13
+      Build targets in project: 53
+      
+      pandas 2.1.4
+      
+        User defined options
+          Native files: /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/.mesonpy-h80h_gms/build/meson-python-native-file.ini
+          buildtype   : release
+          vsenv       : True
+          b_ndebug    : if-release
+          b_vscrt     : md
+      
+      Found ninja-1.13.0.git.kitware.jobserver-pipe-1 at /tmp/pip-build-env-52hj0uyc/normal/bin/ninja
+      
+      Visual Studio environment is needed to run Ninja. It is recommended to use Meson wrapper:
+      /tmp/pip-build-env-52hj0uyc/overlay/bin/meson compile -C .
+      + /tmp/pip-build-env-52hj0uyc/normal/bin/ninja
+      [1/151] Generating pandas/_libs/algos_common_helper_pxi with a custom command
+      [2/151] Generating pandas/_libs/index_class_helper_pxi with a custom command
+      [3/151] Generating pandas/_libs/algos_take_helper_pxi with a custom command
+      [4/151] Generating pandas/_libs/intervaltree_helper_pxi with a custom command
+      [5/151] Generating pandas/_libs/khash_primitive_helper_pxi with a custom command
+      [6/151] Generating pandas/_libs/hashtable_class_helper_pxi with a custom command
+      [7/151] Generating pandas/_libs/hashtable_func_helper_pxi with a custom command
+      [8/151] Generating pandas/_libs/sparse_op_helper_pxi with a custom command
+      [9/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/base.pyx
+      [10/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/dtypes.pyx
+      [11/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/nattype.pyx
+      [12/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/ccalendar.pyx
+      [13/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/np_datetime.pyx
+      [14/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/arrays.pyx
+      [15/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/indexing.pyx
+      [16/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/conversion.pyx
+      [17/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/offsets.pyx
+      [18/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/vectorized.pyx
+      [19/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/parsing.pyx
+      [20/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/tzconversion.pyx
+      [21/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/timezones.pyx
+      [22/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/timestamps.pyx
+      [23/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/strptime.pyx
+      [24/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/ops_dispatch.pyx
+      [25/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/period.pyx
+      [26/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/fields.pyx
+      [27/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/properties.pyx
+      [28/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/missing.pyx
+      [29/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/byteswap.pyx
+      [30/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslibs/timedeltas.pyx
+      [31/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/hashing.pyx
+      [32/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/internals.pyx
+      [33/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/ops.pyx
+      [34/151] Compiling C object pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_ccalendar.pyx.c.o
+      FAILED: [code=1] pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_ccalendar.pyx.c.o
+      cc -Ipandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p -Ipandas/_libs/tslibs -I../../pandas/_libs/tslibs -I../../../../pip-build-env-52hj0uyc/overlay/lib/python3.13/site-packages/numpy/core/include -I../../pandas/_libs/include -I/usr/local/include/python3.13 -fvisibility=hidden -fdiagnostics-color=always -DNDEBUG -D_FILE_OFFSET_BITS=64 -w -std=c99 -O3 -DNPY_NO_DEPRECATED_API=0 -DNPY_TARGET_VERSION=NPY_1_21_API_VERSION -fPIC -MD -MQ pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_ccalendar.pyx.c.o -MF pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_ccalendar.pyx.c.o.d -o pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_ccalendar.pyx.c.o -c pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/ccalendar.pyx.c
+      pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/ccalendar.pyx.c: In function ‘__Pyx_PyInt_As_int’:
+      pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/ccalendar.pyx.c:7376:27: error: too few arguments to function ‘_PyLong_AsByteArray’
+       7376 |                 int ret = _PyLong_AsByteArray((PyLongObject *)v,
+            |                           ^~~~~~~~~~~~~~~~~~~
+      In file included from /usr/local/include/python3.13/longobject.h:107,
+                       from /usr/local/include/python3.13/Python.h:82,
+                       from pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/ccalendar.pyx.c:6:
+      /usr/local/include/python3.13/cpython/longobject.h:111:17: note: declared here
+        111 | PyAPI_FUNC(int) _PyLong_AsByteArray(PyLongObject* v,
+            |                 ^~~~~~~~~~~~~~~~~~~
+      pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/ccalendar.pyx.c: In function ‘__Pyx_PyInt_As_long’:
+      pandas/_libs/tslibs/ccalendar.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/ccalendar.pyx.c:7686:27: error: too few arguments to function ‘_PyLong_AsByteArray’
+       7686 |                 int ret = _PyLong_AsByteArray((PyLongObject *)v,
+            |                           ^~~~~~~~~~~~~~~~~~~
+      /usr/local/include/python3.13/cpython/longobject.h:111:17: note: declared here
+        111 | PyAPI_FUNC(int) _PyLong_AsByteArray(PyLongObject* v,
+            |                 ^~~~~~~~~~~~~~~~~~~
+      [35/151] Compiling C object pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_base.pyx.c.o
+      FAILED: [code=1] pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_base.pyx.c.o
+      cc -Ipandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p -Ipandas/_libs/tslibs -I../../pandas/_libs/tslibs -I../../../../pip-build-env-52hj0uyc/overlay/lib/python3.13/site-packages/numpy/core/include -I../../pandas/_libs/include -I/usr/local/include/python3.13 -fvisibility=hidden -fdiagnostics-color=always -DNDEBUG -D_FILE_OFFSET_BITS=64 -w -std=c99 -O3 -DNPY_NO_DEPRECATED_API=0 -DNPY_TARGET_VERSION=NPY_1_21_API_VERSION -fPIC -MD -MQ pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_base.pyx.c.o -MF pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_base.pyx.c.o.d -o pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/meson-generated_pandas__libs_tslibs_base.pyx.c.o -c pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/base.pyx.c
+      pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/base.pyx.c: In function ‘__Pyx_PyInt_As_long’:
+      pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/base.pyx.c:5397:27: error: too few arguments to function ‘_PyLong_AsByteArray’
+       5397 |                 int ret = _PyLong_AsByteArray((PyLongObject *)v,
+            |                           ^~~~~~~~~~~~~~~~~~~
+      In file included from /usr/local/include/python3.13/longobject.h:107,
+                       from /usr/local/include/python3.13/Python.h:82,
+                       from pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/base.pyx.c:6:
+      /usr/local/include/python3.13/cpython/longobject.h:111:17: note: declared here
+        111 | PyAPI_FUNC(int) _PyLong_AsByteArray(PyLongObject* v,
+            |                 ^~~~~~~~~~~~~~~~~~~
+      pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/base.pyx.c: In function ‘__Pyx_PyInt_As_int’:
+      pandas/_libs/tslibs/base.cpython-313-x86_64-linux-gnu.so.p/pandas/_libs/tslibs/base.pyx.c:5631:27: error: too few arguments to function ‘_PyLong_AsByteArray’
+       5631 |                 int ret = _PyLong_AsByteArray((PyLongObject *)v,
+            |                           ^~~~~~~~~~~~~~~~~~~
+      /usr/local/include/python3.13/cpython/longobject.h:111:17: note: declared here
+        111 | PyAPI_FUNC(int) _PyLong_AsByteArray(PyLongObject* v,
+            |                 ^~~~~~~~~~~~~~~~~~~
+      [36/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/testing.pyx
+      [37/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/sas.pyx
+      [38/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/index.pyx
+      [39/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/reshape.pyx
+      [40/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/tslib.pyx
+      [41/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/window/indexers.pyx
+      [42/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/parsers.pyx
+      [43/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/writers.pyx
+      [44/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/window/aggregations.pyx
+      [45/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/lib.pyx
+      [46/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/interval.pyx
+      [47/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/sparse.pyx
+      [48/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/algos.pyx
+      [49/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/hashtable.pyx
+      [50/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/groupby.pyx
+      [51/151] Compiling Cython source /tmp/pip-install-z184jp94/pandas_59d0d0824c7b42f5b08bde55d222caea/pandas/_libs/join.pyx
+      ninja: build stopped: subcommand failed.
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+error: metadata-generation-failed
+
+× Encountered error while generating package metadata.
+╰─> See above for output.
+
+note: This is an issue with the package mentioned above, not pip.
+hint: See above for details.
+
+[notice] A new release of pip is available: 24.0 -> 25.3
+[notice] To update, run: pip install --upgrade pip
+Checking if Streamlit is installed
+Installing rich for an improved exception logging
+Using standard pip install.
+Collecting rich>=10.14.0
+  Downloading rich-14.2.0-py3-none-any.whl.metadata (18 kB)
+Collecting markdown-it-py>=2.2.0 (from rich>=10.14.0)
+  Downloading markdown_it_py-4.0.0-py3-none-any.whl.metadata (7.3 kB)
+Collecting pygments<3.0.0,>=2.13.0 (from rich>=10.14.0)
+  Downloading pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=10.14.0)
+  Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+Downloading rich-14.2.0-py3-none-any.whl (243 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 243.4/243.4 kB 14.1 MB/s eta 0:00:00[2025-12-23 04:53:47.018940] 
+Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.3/87.3 kB 128.5 MB/s eta 0:00:00[2025-12-23 04:53:47.032143] 
+Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 77.4 MB/s eta 0:00:00[2025-12-23 04:53:47.060421] 
+Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Installing collected packages: pygments, mdurl, markdown-it-py, rich
+  Attempting uninstall: pygments
+    Found existing installation: Pygments 2.19.2
+    Uninstalling Pygments-2.19.2:
+      Successfully uninstalled Pygments-2.19.2
+  Attempting uninstall: mdurl
+    Found existing installation: mdurl 0.1.2
+    Uninstalling mdurl-0.1.2:
+      Successfully uninstalled mdurl-0.1.2
+  Attempting uninstall: markdown-it-py
+    Found existing installation: markdown-it-py 4.0.0
+    Uninstalling markdown-it-py-4.0.0:
+      Successfully uninstalled markdown-it-py-4.0.0
+  Attempting uninstall: rich
+    Found existing installation: rich 14.2.0
+    Uninstalling rich-14.2.0:
+      Successfully uninstalled rich-14.2.0
+Successfully installed markdown-it-py-4.0.0 mdurl-0.1.2 pygments-2.19.2 rich-14.2.0
+
+[notice] A new release of pip is available: 24.0 -> 25.3
+[notice] To update, run: pip install --upgrade pip
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+[04:53:48] ❗️ installer returned a non-zero exit code
+[04:53:48] ❗️ Error during processing dependencies! Please fix the error and push an update, or try restarting the app.
