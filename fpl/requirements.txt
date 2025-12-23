@@ -9,5 +9,4 @@ plotly==6.5.0
 requests==2.32.5
 SQLAlchemy==2.0.44
 tenacity==9.1.2
-understat==0.1.13
 watchdog==6.0.0
