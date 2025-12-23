@@ -1,0 +1,44 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+.drawing {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 200px;
+    /* Small sketch size */
+    height: auto;
+    opacity: 0.8;
+    mix-blend-mode: multiply;
+    /* Make it look like sketch on paper */
+    pointer-events: none;
+    z-index: 0;
+    /* Behind arrows? Or arrows are on top of everything? Postcard arrows are z-index 10. */
+}
+
+.drawingLeft {
+    left: 5%;
+}
+
+.drawingRight {
+    right: 5%;
+}
+
+/* Postcard Wrapper to ensure it's centered and above drawings */
+.postcardWrapper {
+    z-index: 1;
+}
+
+/* Mobile */
+@media (max-width: 1000px) {
+    .drawing {
+        display: none;
+        /* Hide drawings on mobile to avoid clutter/overlap */
+    }
+}

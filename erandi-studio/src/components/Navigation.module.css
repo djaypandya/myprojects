@@ -1,0 +1,76 @@
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: var(--space-md) var(--space-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 1000;
+    mix-blend-mode: difference;
+    /* Ensure visibility over video/images */
+    color: var(--bg-color);
+    /* Inverted color because of difference mode, or just white/black depending on bg */
+    /* Actually, 'mix-blend-mode: difference' with 'color: white' usually works well on light/dark. 
+     But per brief "Logo remains visible... No text overlays on video" (Wait, video IS an overlay?).
+     "Overlay: Logo remains visible top left".
+     I'll stick to standard positioning first. Text color might need to be dynamic or just distinct.
+     Let's use a safe dark color and see. Or white if it's over video.
+     The brief says "Logo remains visible top left... No text overlays on the video" referring to *content* text.
+     Nav is chrome.
+     I'll start with a safe 'color: inherit' and let context dictate, but for Hero it needs to be visible.
+  */
+    color: var(--text-main);
+    transition: opacity var(--duration-nav) var(--ease-soft);
+}
+
+.logo {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    z-index: 1001;
+}
+
+.menu {
+    display: flex;
+    gap: var(--space-md);
+    list-style: none;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+}
+
+.menuItem {
+    position: relative;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    padding-top: var(--space-xs);
+    display: none;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.menuItem:hover .dropdown {
+    display: flex;
+}
+
+.dropdownLink {
+    white-space: nowrap;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.dropdownLink:hover {
+    opacity: 1;
+}
+
+/* Mobile responsiveness will require a burger or simplified view, 
+   but for now sticking to the "Light, editorial" desktop feel. */

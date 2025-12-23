@@ -1,0 +1,73 @@
+.heroContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-color);
+}
+
+.videoWrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
+    /* Adjust if we need it washed out, but brief says 'Full-screen video' */
+    /* Brief says "Video requirements: ... Graceful fallback". 
+     The yellow background acts as fallback/loading state too. */
+}
+
+/* Socials */
+.socials {
+    position: fixed;
+    /* Fixed so it stays on screen? Or just at bottom of hero? 
+     "On scroll down, reveal two small social icons" 
+     Usually means they are at the bottom of the content, or they fade in fixed.
+     "Global Navigation: Logo top left, Menu top right"
+     Socials: "Scroll down, reveal... Subtle and secondary"
+     I'll make them fixed at bottom left or right, initially hidden/opacity 0.
+  */
+    bottom: var(--space-md);
+    right: var(--space-md);
+    /* Or left? "Logo remains visible top left". 
+     Maybe bottom right to balance? Or bottom center?
+     Brief doesn't specify position, just "reveal".
+     I'll place them Bottom Right to balance Logo (Top Left).
+  */
+    display: flex;
+    gap: var(--space-sm);
+    z-index: 100;
+    transition: opacity 0.8s var(--ease-soft), transform 0.8s var(--ease-soft);
+
+    /* Initial state: Hidden */
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.socialsVisible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.socialLink {
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-main);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+}
+
+.socialLink:hover {
+    border-bottom-color: var(--text-main);
+}

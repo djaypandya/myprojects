@@ -1,0 +1,13 @@
+[
+    {
+        "id": "bespoke-1",
+        "slug": "the-arch-chair",
+        "title": "The Arch Chair",
+        "material": "Oak & Bouclé",
+        "year": "2024",
+        "heroImage": "/placeholder/bespoke-1.jpg",
+        "drawings": [
+            "/placeholder/bespoke-1-sketch.jpg"
+        ]
+    }
+]

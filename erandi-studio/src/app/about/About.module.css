@@ -1,0 +1,74 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+    padding: var(--space-lg);
+}
+
+.postcard {
+    display: flex;
+    width: 100%;
+    max-width: 900px;
+    aspect-ratio: 3/2;
+    background-color: #fff;
+    /* Or just transparent if the split implies content? "One main rectangle". */
+    /* Brief says "Single postcard split vertically". Implies the container is the postcard. */
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: none;
+    /* Explicitly no drop shadows */
+}
+
+.imageSection {
+    flex: 1;
+    position: relative;
+    background-color: #eee;
+}
+
+.textSection {
+    flex: 1;
+    padding: var(--space-md) var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    background-color: #fff;
+    /* Paper color? Or same as bg? */
+    /* "Background: Butter yellow". Postcard usually stands out. 
+     If background is #FDFBE8, Postcard could be white or slightly different tone.
+     "Background colour: butter yellow... Postcard-style frame... One main rectangle".
+     I'll make the text section white or slightly off-white to distinguish from background.
+  */
+    background-color: rgba(255, 255, 255, 0.5);
+    /* Subtle */
+}
+
+.image {
+    object-fit: cover;
+}
+
+.text {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    max-width: 40ch;
+    /* Optimal reading */
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .postcard {
+        flex-direction: column;
+        aspect-ratio: auto;
+        height: auto;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .imageSection {
+        min-height: 300px;
+    }
+}

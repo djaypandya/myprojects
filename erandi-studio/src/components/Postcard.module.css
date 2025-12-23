@@ -1,0 +1,127 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    padding: var(--space-lg);
+}
+
+.postcardWrapper {
+    position: relative;
+    /* "One main rectangle per view" */
+    /* Aspect ratio? Usually 4:3 or 3:2 for photos. */
+    width: 100%;
+    max-width: 900px;
+    /* Adjust as needed */
+    aspect-ratio: 3/2;
+    /* Default landscape postcard */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.postcardInner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    /* "Soft edges (not sharp 1px borders)" - maybe rounded corners + subtle blend? */
+    border-radius: 2px;
+    /* Slight softening for "paper" feel, not "app" rounded equivalent */
+    overflow: hidden;
+    background-color: #f0f0f0;
+    /* Loading placeholder */
+    /* "Never use drop shadows" */
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.5s ease;
+}
+
+/* Metadata "Wraps around the postcard" */
+.metadataTop,
+.metadataBottom {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    font-family: var(--font-hand);
+    /* "Expressive handwritten-style style for annotations / metadata"? */
+    /* "Project Name x Year x Location... Small, archival, museum-label feel" 
+     Usually museum labels are CLEAN SANS or SERIF.
+     But "Surrounding text... Small, archival" vs "Typography... Expressive handwritten-style for annotations".
+     I'll use the Handwriting for the "Texture" or "Notes", but maybe the Project Title should be the Serif?
+     Brief: "Prefer: Expressive handwritten-style for annotations / metadata".
+     "Project Name x Year x Location" IS metadata. So I will use Hand font OR a very clean Serif mono.
+     Let's try the Handwriting font as requested for metadata, or maybe a mix.
+     If it's "Museum label", that's usually tiny formal type.
+     "Handwritten" might be for "Notes".
+     Let's stick to the prompt: "Expressive handwritten-style font for annotations / metadata".
+     So I'll use `var(--font-hand)` for this surrounding text.
+  */
+    font-family: var(--font-hand);
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.metadataTop {
+    top: -2.5rem;
+    /* Just above */
+}
+
+.metadataBottom {
+    bottom: -2.5rem;
+    /* Just below */
+}
+
+/* Navigation Arrows "outside the postcard... symbolic or hand-drawn" */
+.navArrowLeft,
+.navArrowRight {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    padding: var(--space-sm);
+    z-index: 10;
+    transition: opacity 0.3s;
+    /* SVG or text? */
+}
+
+.navArrowLeft {
+    left: var(--space-md);
+}
+
+.navArrowRight {
+    right: var(--space-md);
+}
+
+.navArrowLeft:hover,
+.navArrowRight:hover {
+    opacity: 0.6;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: var(--space-md);
+    }
+
+    .postcardWrapper {
+        max-width: 100%;
+        aspect-ratio: 4/5;
+        /* Portrait on mobile maybe? */
+    }
+
+    .navArrowLeft {
+        left: 0;
+    }
+
+    .navArrowRight {
+        right: 0;
+    }
+}

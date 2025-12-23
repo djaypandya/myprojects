@@ -1,0 +1,37 @@
+[
+    {
+        "id": "res-1",
+        "slug": "hudson-loft",
+        "category": "residential",
+        "title": "Hudson Loft",
+        "year": "2024",
+        "location": "New York, NY",
+        "images": [
+            "/placeholder/res-1-1.jpg",
+            "/placeholder/res-1-2.jpg"
+        ]
+    },
+    {
+        "id": "res-2",
+        "slug": "surrey-estate",
+        "category": "residential",
+        "title": "Surrey Estate",
+        "year": "2023",
+        "location": "Surrey, UK",
+        "images": [
+            "/placeholder/res-2-1.jpg"
+        ]
+    },
+    {
+        "id": "com-1",
+        "slug": "aelia-hotel",
+        "category": "commercial",
+        "title": "Aelia Hotel",
+        "year": "2024",
+        "location": "Mykonos, GR",
+        "images": [
+            "/placeholder/com-1-1.jpg",
+            "/placeholder/com-1-2.jpg"
+        ]
+    }
+]

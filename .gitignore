@@ -1,0 +1,17 @@
+# System files
+.DS_Store
+
+# Dependencies
+node_modules/
+__pycache__/
+
+# Large Data Files
+*.db
+*.csv
+*.zip
+*.tar.gz
+*.pkl
+
+# Environment variables
+.env
+.env.local
