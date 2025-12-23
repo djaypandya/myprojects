@@ -10,6 +10,13 @@ import plotly.graph_objects as go
 import config
 import fpl_api
 
+# Check if kaleido is available for GIF export
+try:
+    import kaleido
+    KALEIDO_AVAILABLE = True
+except ImportError:
+    KALEIDO_AVAILABLE = False
+
 # Constants
 # Imported from config
 

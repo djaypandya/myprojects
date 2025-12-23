@@ -135,7 +135,9 @@ def render_my_league_position(selected_league_id, entry_id, df_league):
 
     # --- GIF Export ---
     with st.expander("Export Animation"):
-        if st.button("Generate Animation (GIF)"):
+        if not league_replay.KALEIDO_AVAILABLE:
+            st.warning("GIF export is not available. The `kaleido` library is required but not installed.")
+        elif st.button("Generate Animation (GIF)"):
             with st.spinner("Generating GIF..."):
                 progress_bar = st.progress(0)
                 gif_bytes = league_replay.generate_league_gif(
