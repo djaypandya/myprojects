@@ -177,6 +177,278 @@ def get_classic_leagues(entry_data):
         for league in entry_data['leagues']['classic']
     ]
 
+# =========================================================
+# SCORECARD FUNCTIONS
+# =========================================================
+
+# Constant for live rank calculation threshold
+LIVE_RANK_MAX_MANAGERS = 40
+
+@st.cache_data(ttl=60)
+def fetch_event_live_cached(event_id):
+    """Fetch live event data with short TTL for live scores."""
+    try:
+        return fpl_api.fetch_event_live(event_id)
+    except Exception as e:
+        print(f"Error fetching live data for event {event_id}: {e}")
+        return None
+
+@st.cache_data(ttl=600)
+def fetch_fixtures_cached(event_id):
+    """Fetch fixtures for an event with 10min TTL."""
+    try:
+        return fpl_api.fetch_fixtures(event=event_id)
+    except Exception as e:
+        print(f"Error fetching fixtures for event {event_id}: {e}")
+        return None
+
+@st.cache_data(ttl=120)
+def fetch_picks_cached(entry_id, event_id):
+    """Fetch picks with 2min TTL for relatively fresh data."""
+    try:
+        return fpl_api.fetch_entry_picks(entry_id, event_id)
+    except Exception as e:
+        print(f"Error fetching picks for entry {entry_id}, event {event_id}: {e}")
+        return None
+
+@st.cache_data(ttl=300)
+def fetch_league_standings_cached(league_id):
+    """Fetch league standings with 5min TTL."""
+    try:
+        return fpl_api.fetch_league_standings(league_id)
+    except Exception as e:
+        print(f"Error fetching standings for league {league_id}: {e}")
+        return None
+
+def compute_live_gw_points(picks_data, live_data):
+    """
+    Compute live GW points for starting XI only.
+    
+    Args:
+        picks_data: from entry/{id}/event/{gw}/picks/
+        live_data: from event/{gw}/live/
+        
+    Returns:
+        int: Total live GW points
+    """
+    if not picks_data or not live_data:
+        return None
+    
+    picks = picks_data.get('picks', [])
+    elements = live_data.get('elements', [])
+    
+    # Build element_id -> live_points map
+    live_points_map = {}
+    for el in elements:
+        el_id = el.get('id')
+        stats = el.get('stats', {})
+        live_points_map[el_id] = stats.get('total_points', 0)
+    
+    total = 0
+    for pick in picks:
+        # Only count starting XI (multiplier > 0)
+        multiplier = pick.get('multiplier', 0)
+        if multiplier > 0:
+            element_id = pick.get('element')
+            points = live_points_map.get(element_id, 0)
+            total += points * multiplier
+    
+    return total
+
+def get_fixture_status_map(fixtures_data, bootstrap_data):
+    """
+    Build a map of team_id -> finished status.
+    
+    Returns:
+        dict: {team_id: {'finished': bool, 'started': bool}}
+    """
+    if not fixtures_data or not bootstrap_data:
+        return {}
+    
+    team_status = {}
+    teams = bootstrap_data.get('teams', [])
+    
+    # Initialize all teams as not started
+    for team in teams:
+        team_status[team['id']] = {'finished': False, 'started': False}
+    
+    # Update based on fixtures
+    for fixture in fixtures_data:
+        home_team = fixture.get('team_h')
+        away_team = fixture.get('team_a')
+        finished = fixture.get('finished', False)
+        started = fixture.get('started', False)
+        
+        if home_team:
+            team_status[home_team] = {'finished': finished, 'started': started}
+        if away_team:
+            team_status[away_team] = {'finished': finished, 'started': started}
+    
+    return team_status
+
+def compute_players_left(picks_data, fixture_status, bootstrap_data):
+    """
+    Count starting XI players with unfinished fixtures.
+    
+    Returns:
+        int: Number of players yet to play or still playing
+    """
+    if not picks_data or not fixture_status or not bootstrap_data:
+        return None
+    
+    picks = picks_data.get('picks', [])
+    elements = bootstrap_data.get('elements', [])
+    
+    # Build element_id -> team_id map
+    element_team_map = {el['id']: el['team'] for el in elements}
+    
+    players_left = 0
+    for pick in picks:
+        multiplier = pick.get('multiplier', 0)
+        if multiplier > 0:  # Starting XI only
+            element_id = pick.get('element')
+            team_id = element_team_map.get(element_id)
+            if team_id:
+                status = fixture_status.get(team_id, {})
+                if not status.get('finished', False):
+                    players_left += 1
+    
+    return players_left
+
+def get_captain_status(picks_data, fixture_status, bootstrap_data):
+    """
+    Get captain name and played status.
+    
+    Returns:
+        dict: {'name': str, 'played': bool, 'symbol': str}
+    """
+    if not picks_data or not bootstrap_data:
+        return {'name': 'Unknown', 'played': False, 'symbol': '❓'}
+    
+    picks = picks_data.get('picks', [])
+    elements = bootstrap_data.get('elements', [])
+    
+    # Build element lookups
+    element_name_map = {el['id']: el['web_name'] for el in elements}
+    element_team_map = {el['id']: el['team'] for el in elements}
+    
+    # Find captain
+    captain_pick = next((p for p in picks if p.get('is_captain')), None)
+    if not captain_pick:
+        return {'name': 'No Captain', 'played': False, 'symbol': '❓'}
+    
+    captain_id = captain_pick.get('element')
+    captain_name = element_name_map.get(captain_id, 'Unknown')
+    captain_team = element_team_map.get(captain_id)
+    
+    # Check if captain's fixture is finished
+    played = False
+    symbol = '⏳'
+    if fixture_status and captain_team:
+        status = fixture_status.get(captain_team, {})
+        played = status.get('finished', False)
+        symbol = '✅' if played else '⏳'
+    
+    return {'name': captain_name, 'played': played, 'symbol': symbol}
+
+def get_standings_info(standings_data, entry_id):
+    """
+    Extract user's standing info from league standings.
+    
+    Returns:
+        dict: {
+            'my_rank': int,
+            'my_total': int,
+            'gap_to_1st': int,
+            'gap_to_3rd': int or 'N/A',
+            'league_size': int,
+            'first_place_total': int
+        }
+    """
+    if not standings_data:
+        return None
+    
+    standings = standings_data.get('standings', {})
+    results = standings.get('results', [])
+    
+    if not results:
+        return None
+    
+    league_size = len(results)
+    
+    # Find user
+    my_row = next((r for r in results if r.get('entry') == entry_id), None)
+    if not my_row:
+        return None
+    
+    my_rank = my_row.get('rank', 0)
+    my_total = my_row.get('total', 0)
+    
+    # Find 1st place
+    first_place = next((r for r in results if r.get('rank') == 1), None)
+    first_total = first_place.get('total', 0) if first_place else my_total
+    gap_to_1st = first_total - my_total
+    
+    # Find 3rd place
+    third_place = next((r for r in results if r.get('rank') == 3), None)
+    if third_place:
+        third_total = third_place.get('total', 0)
+        gap_to_3rd = third_total - my_total  # Can be negative if user is ahead
+    else:
+        gap_to_3rd = 'N/A'
+    
+    return {
+        'my_rank': my_rank,
+        'my_total': my_total,
+        'gap_to_1st': gap_to_1st,
+        'gap_to_3rd': gap_to_3rd,
+        'league_size': league_size,
+        'first_place_total': first_total
+    }
+
+def compute_live_league_rank(standings_data, event_id, entry_id, live_data):
+    """
+    Compute live GW rank within the league.
+    Only called if league_size <= LIVE_RANK_MAX_MANAGERS.
+    
+    Returns:
+        int: User's live GW rank, or None on failure
+    """
+    if not standings_data or not live_data:
+        return None
+    
+    standings = standings_data.get('standings', {})
+    results = standings.get('results', [])
+    
+    if len(results) > LIVE_RANK_MAX_MANAGERS:
+        return None
+    
+    # Fetch picks for all managers and compute live points
+    manager_scores = []
+    
+    for manager in results:
+        mgr_entry_id = manager.get('entry')
+        mgr_total = manager.get('total', 0)
+        
+        picks = fetch_picks_cached(mgr_entry_id, event_id)
+        live_pts = compute_live_gw_points(picks, live_data) if picks else 0
+        
+        manager_scores.append({
+            'entry_id': mgr_entry_id,
+            'live_gw_points': live_pts or 0,
+            'total_points': mgr_total
+        })
+    
+    # Sort by live GW points (desc), then total points (desc) as tiebreaker
+    manager_scores.sort(key=lambda x: (-x['live_gw_points'], -x['total_points']))
+    
+    # Find user's rank
+    for idx, mgr in enumerate(manager_scores):
+        if mgr['entry_id'] == entry_id:
+            return idx + 1  # 1-indexed rank
+    
+    return None
+
 def process_league_history(league_id, progress_callback=None):
     """
     Orchestrates the data fetching and processing for the league replay.

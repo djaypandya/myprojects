@@ -78,3 +78,7 @@ def fetch_fixtures(event=None):
 def fetch_element_summary(element_id):
     """Fetch all stats and history for a specific player."""
     return _make_request(f"element-summary/{element_id}/")
+
+def fetch_event_live(event_id):
+    """Fetch live points data for an event/gameweek."""
+    return _make_request(f"event/{event_id}/live/")

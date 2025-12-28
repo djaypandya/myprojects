@@ -1,9 +1,163 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+from datetime import datetime
 import league_replay
 import config
 import visualizations
+
+
+def render_overview_scorecard(entry_id, league_id, current_gw, meta):
+    """
+    Render the Mini-league Snapshot scorecard with 8 KPI tiles.
+    
+    Tiles (in order):
+    1. GW Points (Live)
+    2. League Rank (Live GW) - conditional
+    3. Overall Points (Season)
+    4. Mini-league Rank (Season)
+    5. Gap to 1st (Season)
+    6. Gap to 3rd (Season)
+    7. Players Left
+    8. Captain Status
+    """
+    
+    with st.container():
+        st.subheader("📊 Mini-League Snapshot")
+        
+        # Track if any API calls fail
+        has_warnings = False
+        
+        # Fetch all required data
+        try:
+            bootstrap = league_replay.fetch_bootstrap_static()
+        except:
+            bootstrap = None
+            has_warnings = True
+            
+        try:
+            standings_data = league_replay.fetch_league_standings_cached(league_id)
+        except:
+            standings_data = None
+            has_warnings = True
+            
+        try:
+            live_data = league_replay.fetch_event_live_cached(current_gw)
+        except:
+            live_data = None
+            has_warnings = True
+            
+        try:
+            fixtures_data = league_replay.fetch_fixtures_cached(current_gw)
+        except:
+            fixtures_data = None
+            has_warnings = True
+            
+        try:
+            picks_data = league_replay.fetch_picks_cached(entry_id, current_gw)
+        except:
+            picks_data = None
+            has_warnings = True
+        
+        if has_warnings:
+            st.warning("⚠️ Some live data unavailable; showing latest known values.")
+        
+        # Compute metrics
+        # 1. GW Points (Live)
+        gw_points = league_replay.compute_live_gw_points(picks_data, live_data)
+        if gw_points is None and meta:
+            gw_points = meta.get('summary_event_points', 'N/A')
+        
+        # 2. Standings info (for season metrics)
+        standings_info = league_replay.get_standings_info(standings_data, entry_id)
+        
+        # 3. Overall Points (Season)
+        overall_points = meta.get('summary_overall_points', 'N/A') if meta else 'N/A'
+        
+        # 4. Mini-league Rank
+        league_rank = standings_info['my_rank'] if standings_info else 'N/A'
+        
+        # 5. Gap to 1st
+        gap_to_1st = standings_info['gap_to_1st'] if standings_info else 'N/A'
+        
+        # 6. Gap to 3rd
+        gap_to_3rd = standings_info['gap_to_3rd'] if standings_info else 'N/A'
+        
+        # 7. Players Left
+        fixture_status = league_replay.get_fixture_status_map(fixtures_data, bootstrap)
+        players_left = league_replay.compute_players_left(picks_data, fixture_status, bootstrap)
+        
+        # 8. Captain Status
+        captain_info = league_replay.get_captain_status(picks_data, fixture_status, bootstrap)
+        
+        # 9. Live League Rank (conditional)
+        league_size = standings_info['league_size'] if standings_info else 0
+        show_live_rank = league_size <= league_replay.LIVE_RANK_MAX_MANAGERS and league_size > 0
+        live_league_rank = None
+        if show_live_rank:
+            live_league_rank = league_replay.compute_live_league_rank(
+                standings_data, current_gw, entry_id, live_data
+            )
+        
+        # Render tiles
+        if show_live_rank:
+            # 8 tiles: 4 + 4
+            cols = st.columns(4)
+            with cols[0]:
+                st.metric("GW Points (Live)", gw_points if gw_points is not None else 'N/A')
+            with cols[1]:
+                st.metric("Live GW Rank", live_league_rank if live_league_rank else 'N/A')
+            with cols[2]:
+                st.metric("Overall Points", overall_points)
+            with cols[3]:
+                st.metric("League Rank", league_rank)
+            
+            cols2 = st.columns(4)
+            with cols2[0]:
+                gap_1_display = f"{gap_to_1st:+d}" if isinstance(gap_to_1st, int) and gap_to_1st != 0 else str(gap_to_1st)
+                st.metric("Gap to 1st", gap_1_display if gap_to_1st != 0 else "Leader! 🏆")
+            with cols2[1]:
+                if isinstance(gap_to_3rd, int):
+                    gap_3_display = f"{gap_to_3rd:+d}" if gap_to_3rd != 0 else "0"
+                else:
+                    gap_3_display = str(gap_to_3rd)
+                st.metric("Gap to 3rd", gap_3_display)
+            with cols2[2]:
+                st.metric("Players Left", players_left if players_left is not None else 'N/A')
+            with cols2[3]:
+                captain_display = f"{captain_info['name']} {captain_info['symbol']}"
+                st.metric("Captain", captain_display)
+        else:
+            # 7 tiles (no live rank): 4 + 3
+            cols = st.columns(4)
+            with cols[0]:
+                st.metric("GW Points (Live)", gw_points if gw_points is not None else 'N/A')
+            with cols[1]:
+                st.metric("Overall Points", overall_points)
+            with cols[2]:
+                st.metric("League Rank", league_rank)
+            with cols[3]:
+                gap_1_display = f"{gap_to_1st:+d}" if isinstance(gap_to_1st, int) and gap_to_1st != 0 else str(gap_to_1st)
+                st.metric("Gap to 1st", gap_1_display if gap_to_1st != 0 else "Leader! 🏆")
+            
+            cols2 = st.columns(4)
+            with cols2[0]:
+                if isinstance(gap_to_3rd, int):
+                    gap_3_display = f"{gap_to_3rd:+d}" if gap_to_3rd != 0 else "0"
+                else:
+                    gap_3_display = str(gap_to_3rd)
+                st.metric("Gap to 3rd", gap_3_display)
+            with cols2[1]:
+                st.metric("Players Left", players_left if players_left is not None else 'N/A')
+            with cols2[2]:
+                captain_display = f"{captain_info['name']} {captain_info['symbol']}"
+                st.metric("Captain", captain_display)
+        
+        # Last refreshed timestamp
+        st.caption(f"Last refreshed: {datetime.now().strftime('%H:%M')}")
+        
+        st.divider()
+
 
 def render_my_team_comparison(selected_league_id, entry_id, member_map):
     st.header("My Team Comparison")
@@ -160,11 +314,20 @@ def main():
     st.title("My FPL Mini Leagues")
     st.markdown("Deep dive into your mini-leagues. Compare your team and track the title race.")
     
+    # --- Persistent Team ID using URL query params ---
+    # Check for saved Team ID in URL
+    query_params = st.query_params
+    saved_team_id = query_params.get("team_id", "")
+    
     # --- Step 1: User Input ---
     with st.container():
         col1, col2 = st.columns([1, 2])
         with col1:
-            entry_id_input = st.text_input("Enter your Team ID", help="Found in your FPL URL")
+            entry_id_input = st.text_input(
+                "Enter your Team ID", 
+                value=saved_team_id,
+                help="Found in your FPL URL. Your ID will be saved for next time."
+            )
             
     if not entry_id_input:
         st.info("Please enter your Team ID to begin.")
@@ -175,6 +338,10 @@ def main():
         return
         
     entry_id = int(entry_id_input)
+    
+    # Save Team ID to URL for persistence
+    if entry_id_input != saved_team_id:
+        st.query_params["team_id"] = entry_id_input
     
     # --- Step 2: League Selection ---
     with st.spinner("Fetching team details..."):
@@ -195,6 +362,14 @@ def main():
     selected_league_name = st.selectbox("Select a League", list(league_options.keys()))
     selected_league_id = league_options[selected_league_name]
     
+    # Get current GW for scorecard
+    bootstrap = league_replay.fetch_bootstrap_static()
+    current_gw = league_replay.get_current_gw(bootstrap) if bootstrap else None
+    
+    # --- Render Overview Scorecard (always visible after league selection) ---
+    if current_gw:
+        render_overview_scorecard(entry_id, selected_league_id, current_gw, meta)
+    
     # Load League Data
     if 'current_league_id' not in st.session_state or st.session_state['current_league_id'] != selected_league_id:
         if st.button("Load League Data"):
@@ -213,10 +388,6 @@ def main():
         df_league = st.session_state['league_df']
         
         # Determine Member Map from the dataframe for the comparison tool
-        # (Alternatively we could refetch, but the DF has names and IDs)
-        # We need the full member list for the dropdown
-        # The DF assumes we fetched everyone.
-        
         all_entries = df_league[['Entry ID', 'Name']].drop_duplicates()
         member_map = dict(zip(all_entries['Entry ID'], all_entries['Name']))
 
