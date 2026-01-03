@@ -385,3 +385,109 @@ def create_race_bar_chart(df, user_id, mode):
     )
     
     return fig
+
+def create_trend_line_chart(df, metric, show_annotations, range_option):
+    """
+    Create a time-series chart for Season Trend.
+    
+    Args:
+        df: DataFrame with season history.
+        metric: "Total Points" or "Rank" (Overall).
+        show_annotations: Boolean to show chips/hits.
+        range_option: "Last 6", "Last 10", or "All Season".
+    """
+    # Filter Range
+    if range_option == "Last 6":
+        df = df.tail(6)
+    elif range_option == "Last 10":
+        df = df.tail(10)
+        
+    fig = go.Figure()
+    
+    x_col = 'gw'
+    
+    # Define Metrics
+    if metric == "Total Points":
+        y_user = 'user_points'
+        y_leader = 'leader_points'
+        y_third = 'third_points'
+        title = "Total Points Progression"
+        y_autorange = True
+    else:
+        y_user = 'user_rank'
+        y_leader = 'leader_rank'
+        y_third = 'third_rank'
+        title = "Overall Rank Progression"
+        y_autorange = "reversed" # Lower rank is better
+        
+    # User Line (Bold, Primary)
+    fig.add_trace(go.Scatter(
+        x=df[x_col], y=df[y_user],
+        mode='lines+markers',
+        name='You',
+        line=dict(color='#FFD700', width=4),
+        marker=dict(size=8)
+    ))
+    
+    # Leader Line (Subdued)
+    if y_leader in df.columns and df[y_leader].notnull().any():
+        fig.add_trace(go.Scatter(
+            x=df[x_col], y=df[y_leader],
+            mode='lines',
+            name='Leader',
+            line=dict(color='white', width=2, dash='dash'),
+            opacity=0.5
+        ))
+        
+    # 3rd Place Line (Subdued)
+    if y_third in df.columns and df[y_third].notnull().any():
+        fig.add_trace(go.Scatter(
+            x=df[x_col], y=df[y_third],
+            mode='lines',
+            name='3rd Place',
+            line=dict(color='#BEBEBE', width=2, dash='dot'),
+            opacity=0.5
+        ))
+        
+    # Annotations (Chips / Hits)
+    if show_annotations and metric == "Total Points":
+        # Only meaningful on Points chart usually, or visually cleaner there.
+        # Check for chips
+        chip_rows = df[df['user_chip'].notnull()]
+        if not chip_rows.empty:
+            fig.add_trace(go.Scatter(
+                x=chip_rows[x_col], y=chip_rows[y_user],
+                mode='markers+text',
+                name='Chips',
+                marker=dict(symbol='star', size=15, color='#00ff87'),
+                text=chip_rows['user_chip'],
+                textposition="top center",
+                showlegend=False
+            ))
+            
+        # Check for hits
+        hit_rows = df[df['user_cost'] > 0]
+        if not hit_rows.empty:
+             fig.add_trace(go.Scatter(
+                x=hit_rows[x_col], y=hit_rows[y_user],
+                mode='markers',
+                name='Hits',
+                marker=dict(symbol='x', size=10, color='red'),
+                hovertemplate="Hit: -%{text} pts<extra></extra>",
+                text=hit_rows['user_cost'],
+                showlegend=False
+            ))
+
+    fig.update_layout(
+        title=title,
+        xaxis_title="Gameweek",
+        yaxis_title=metric,
+        yaxis_autorange=y_autorange,
+        template="plotly_dark",
+        hovermode="x unified",
+        legend=dict(orientation="h", y=1.05, x=1, xanchor="right", yanchor="bottom"),
+        height=450,
+        margin=dict(l=10, r=10, t=50, b=40)
+    )
+    
+    return fig

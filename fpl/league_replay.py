@@ -560,6 +560,108 @@ def get_chip_usage(history_data):
     # Simplified: Just return used list for now.
     return used_chips
 
+    return used_chips
+
+def get_season_trend_data(league_id, user_entry_id):
+    """
+    Fetch data for Season Trend chart: User vs Leader vs 3rd Place.
+    """
+    # 1. Fetch Standings to find rivals
+    standings_data = fetch_league_standings_cached(league_id)
+    if not standings_data:
+        return None, "Could not fetch standings."
+        
+    results = standings_data.get('standings', {}).get('results', [])
+    if not results:
+        return None, "No results in standings."
+        
+    # Find Leader and 3rd Place
+    leader_entry = None
+    third_entry = None
+    
+    # Sort just in case API didn't
+    sorted_res = sorted(results, key=lambda x: x['rank'])
+    
+    if len(sorted_res) > 0:
+        leader_entry = sorted_res[0]
+    if len(sorted_res) > 2:
+        third_entry = sorted_res[2]
+        
+    entries_to_fetch = {}
+    entries_to_fetch['user'] = user_entry_id
+    
+    if leader_entry and leader_entry['entry'] != user_entry_id:
+        entries_to_fetch['leader'] = leader_entry['entry']
+        
+    if third_entry and third_entry['entry'] != user_entry_id:
+        # Avoid duplicate if leader is 3rd (impossible) or user is 3rd
+        if 'leader' not in entries_to_fetch or entries_to_fetch['leader'] != third_entry['entry']:
+             entries_to_fetch['3rd'] = third_entry['entry']
+             
+    # 2. Fetch Histories Concurrently
+    histories = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        future_map = {executor.submit(fetch_entry_history, eid): key for key, eid in entries_to_fetch.items()}
+        for future in concurrent.futures.as_completed(future_map):
+            key = future_map[future]
+            try:
+                histories[key] = future.result()
+            except Exception as e:
+                print(f"Failed to fetch history for {key}: {e}")
+                
+    if 'user' not in histories or not histories['user']:
+        return None, "Could not fetch user history."
+        
+    # 3. Align Data
+    # Base on User's GWs
+    user_gw_data = histories['user'].get('current', [])
+    records = []
+    
+    # Helper to clean lookups
+    def get_gw_stats(hist, gw_id):
+        if not hist: return None
+        for g in hist.get('current', []):
+            if g['event'] == gw_id:
+                return g
+        return None
+        
+    user_chips = get_chip_usage(histories['user']) # List of strings "WC (GWX)"
+    # Parse chips back to dict for eaasy lookup
+    user_chip_map = {}
+    if histories['user'] and 'chips' in histories['user']:
+        for c in histories['user']['chips']:
+            user_chip_map[c['event']] = c['name']
+
+    for g in user_gw_data:
+        gw = g['event']
+        row = {
+            'gw': gw,
+            'user_points': g['total_points'],
+            'user_rank': g['overall_rank'],
+            'user_gw_points': g['points'],
+            'user_cost': g['event_transfers_cost'],
+            'user_chip': user_chip_map.get(gw)
+        }
+        
+        # Leader
+        if 'leader' in entries_to_fetch and 'leader' in histories:
+             l_stats = get_gw_stats(histories['leader'], gw)
+             if l_stats:
+                 row['leader_points'] = l_stats['total_points']
+                 row['leader_rank'] = l_stats['overall_rank']
+                 
+        # 3rd Place
+        if '3rd' in entries_to_fetch and '3rd' in histories:
+             t_stats = get_gw_stats(histories['3rd'], gw)
+             if t_stats:
+                 row['third_points'] = t_stats['total_points']
+                 row['third_rank'] = t_stats['overall_rank']
+
+        records.append(row)
+        
+    df = pd.DataFrame(records)
+    return df, None
+
 def process_league_history(league_id, progress_callback=None):
     """
     Orchestrates the data fetching and processing for the league replay.

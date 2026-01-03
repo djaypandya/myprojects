@@ -259,6 +259,91 @@ def render_league_race(league_id, entry_id, current_gw):
 
 
 
+def render_season_trend(league_id, entry_id):
+    """
+    Render Season Trend section.
+    """
+    st.header("📈 Season Trend")
+    
+    # Controls
+    c1, c2, c3 = st.columns([2, 2, 1])
+    with c1:
+        metric = st.radio("View", ["Total Points", "Overall Rank"], horizontal=True, key="trend_view")
+    with c2:
+        range_opt = st.radio("Range", ["Last 6", "Last 10", "All Season"], horizontal=True, index=2, key="trend_range")
+    with c3:
+        st.write("")
+        st.write("")
+        show_notes = st.checkbox("Show Annotations", value=False, key="trend_notes")
+        
+    metric_map = "Total Points" if metric == "Total Points" else "Rank"
+    
+    # Fetch Data
+    with st.spinner("Analyzing season history..."):
+        df_trend, err = league_replay.get_season_trend_data(league_id, entry_id)
+        
+    if err:
+        st.warning(f"Could not load trend data: {err}")
+        return
+        
+    if df_trend is not None and not df_trend.empty:
+        # Companion Metrics (Calculated on Full Data or Window? Window seems better for "in range")
+        # Creating a view for calculation
+        df_view = df_trend.copy()
+        if range_opt == "Last 6": df_view = df_view.tail(6)
+        if range_opt == "Last 10": df_view = df_view.tail(10)
+        
+        # 1. Net Gain vs Leader
+        metric_cols = st.columns(4)
+        
+        user_start = df_view.iloc[0]['user_points']
+        user_end = df_view.iloc[-1]['user_points']
+        user_gain = user_end - user_start
+        
+        if 'leader_points' in df_view.columns and df_view['leader_points'].notnull().all():
+            leader_start = df_view.iloc[0]['leader_points']
+            leader_end = df_view.iloc[-1]['leader_points']
+            leader_gain = leader_end - leader_start
+            net_gain = user_gain - leader_gain
+            
+            with metric_cols[0]:
+                st.metric("Net Gain vs Leader", f"{net_gain:+d}", help="Points gained on leader in selection")
+        else:
+             with metric_cols[0]: st.metric("Points Gained", user_gain)
+
+        # 2. Best GW
+        best_gw = df_view.loc[df_view['user_gw_points'].idxmax()]
+        with metric_cols[1]:
+            st.metric("Best GW", f"{best_gw['user_gw_points']}pts", f"GW{best_gw['gw']}")
+            
+        # 3. Worst GW
+        worst_gw = df_view.loc[df_view['user_gw_points'].idxmin()]
+        with metric_cols[2]:
+            st.metric("Worst GW", f"{worst_gw['user_gw_points']}pts", f"GW{worst_gw['gw']}", delta_color="inverse")
+            
+        # 4. Streak (Last 3)
+        if len(df_view) >= 3 and 'leader_points' in df_view.columns:
+            last_3 = df_view.tail(3)
+            wins = 0
+            for i in range(len(last_3) - 1):
+                # Did user gain on leader between i and i+1?
+                # Actually checking GW points comparison is simpler
+                u_gw = last_3.iloc[i+1]['user_points'] - last_3.iloc[i]['user_points'] # Close approx to gw_points (ignoring hits/transfer math for quick check)
+                l_gw = last_3.iloc[i+1]['leader_points'] - last_3.iloc[i]['leader_points']
+                if u_gw > l_gw: wins += 1
+            
+            streak_label = "Improving" if wins >= 2 else "Declining"
+            streak_color = "normal" if wins >= 2 else "inverse"
+            with metric_cols[3]:
+                st.metric("Recent Run", streak_label, f"{wins}/2 vs Leader")
+
+        # Visual
+        fig = visualizations.create_trend_line_chart(df_trend, metric_map, show_notes, range_opt)
+        st.plotly_chart(fig, use_container_width=True)
+        
+    st.divider()
+
+
 def render_my_team_comparison(selected_league_id, entry_id, member_map):
     st.header("My Team Comparison")
     st.markdown("Compare your team against the template of your mini-league.")
@@ -472,6 +557,9 @@ def main():
         
         # --- Render League Race (new feature) ---
         render_league_race(selected_league_id, entry_id, current_gw)
+        
+        # --- Render Season Trend (new feature) ---
+        render_season_trend(selected_league_id, entry_id)
     
     # Load League Data
     if 'current_league_id' not in st.session_state or st.session_state['current_league_id'] != selected_league_id:
