@@ -280,3 +280,108 @@ def create_snapshot_chart(df_snap, impact_metric):
     )
     
     return fig_snap
+
+def create_race_bar_chart(df, user_id, mode):
+    """
+    Create a horizontal bar chart for the League Race.
+    
+    Args:
+        df: DataFrame with columns [entry_id, player_name, entry_name, points, rank]
+        user_id: The ID of the current user (for highlighting)
+        mode: 'total' or 'gw' (affects scaling/labels)
+        
+    Returns:
+        go.Figure: Plotly figure
+    """
+    # Sort for chart (Top rank at top means simplified: sort ascending points means bottom drawn first? 
+    # Plotly barh: y-axis category order.
+    # We want Rank 1 at Top.
+    # If we pass y=names, x=points.
+    
+    # Sort DF so that highest points is last (drawn at top if yaxis autorange=reversed? No default is bottom-up)
+    # Actually, easiest is: Sort by points ascending. Then Rank 1 is last row.
+    df_chart = df.sort_values('points', ascending=True).copy()
+    
+    # Identify user row
+    user_row = df_chart[df_chart['entry_id'] == user_id]
+    user_points = user_row['points'].iloc[0] if not user_row.empty else 0
+    
+    # Calculate colors
+    colors = []
+    text_labels = []
+    
+    # Logic for top 3 emphasis (if user is not in top 3)
+    # We need to know who is top 3.
+    top_3_ids = df.sort_values('points', ascending=False).head(3)['entry_id'].tolist()
+    
+    for _, row in df_chart.iterrows():
+        eid = row['entry_id']
+        pts = row['points']
+        rank = row.get('gw_rank') if mode == 'gw' else row['rank']
+        
+        # Color
+        if eid == user_id:
+            colors.append('#FFD700') # Gold for user
+        elif eid in top_3_ids:
+            colors.append('#38003c') # FPL Dark Purple for leaders
+        else:
+            colors.append('#BEBEBE' if mode == 'total' else '#87CEEB') # Grey or Light Blue
+            
+        # Text Label (Inside Bar)
+        gap = pts - user_points
+        gap_str = f"{gap:+d}" if gap != 0 and user_row is not None else ""
+        if eid == user_id: gap_str = "(You)"
+        
+        label = f"#{rank} {row['entry_name']} ({pts})"
+        # If wide enough, append gap. We'll use hover for detailed gap mostly.
+        text_labels.append(label)
+        
+    fig = go.Figure()
+    
+    fig.add_trace(go.Bar(
+        x=df_chart['points'],
+        y=df_chart['player_name'] + " (" + df_chart['entry_name'] + ")", # Unique Y keys
+        orientation='h',
+        marker_color=colors,
+        text=text_labels,
+        textposition='auto',
+        hoverinfo='text',
+        hovertext=[
+            f"<b>{r['entry_name']}</b><br>Manager: {r['player_name']}<br>Points: {r['points']}<br>Gap: {r['points']-user_points:+d}" 
+            for _, r in df_chart.iterrows()
+        ],
+        customdata=df_chart['entry_id'] # For click events
+    ))
+    
+    # Add Gap Line (Vertical line at User Points)
+    fig.add_shape(
+        type="line",
+        x0=user_points, y0=-0.5,
+        x1=user_points, y1=len(df_chart) - 0.5,
+        line=dict(color="red", width=2, dash="dash"),
+    )
+    
+    fig.add_annotation(
+        x=user_points,
+        y=len(df_chart),
+        text="Your Score",
+        showarrow=False,
+        yshift=10,
+        font=dict(color="red", size=10)
+    )
+    
+    title_text = "Season Points Ladder" if mode == 'total' else "Live Gameweek Ladder"
+    
+    fig.update_layout(
+        title=title_text,
+        xaxis_title="Points",
+        template="plotly_dark",
+        height=max(400, len(df_chart) * 25), # Auto-height
+        margin=dict(l=10, r=10, t=50, b=50),
+        yaxis=dict(
+            showticklabels=False, # We put labels inside bars
+        ),
+        clickmode='event+select'
+    )
+    
+    return fig

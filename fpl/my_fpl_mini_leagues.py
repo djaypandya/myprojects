@@ -159,7 +159,106 @@ def render_overview_scorecard(entry_id, league_id, current_gw, meta):
         st.divider()
 
 
-def render_my_team_comparison(selected_league_id, entry_id, member_map):
+def render_league_race(league_id, entry_id, current_gw):
+    """
+    Render the interactive League Race visual.
+    Includes simplified toggle, race chart, and drilldown panel.
+    """
+    st.header("🏁 League Race")
+    
+    # 1. Controls
+    race_mode = st.radio(
+        "Metric", 
+        ["Total Points (Season)", "GW Points (Live)"],
+        horizontal=True,
+        index=0,
+        key="race_mode_toggle"
+    )
+    
+    mode = 'total' if race_mode.startswith("Total") else 'gw'
+    
+    # 2. Fetch Data
+    with st.spinner(f"Analyzing {race_mode}..."):
+        df_race, err = league_replay.get_league_race_data(league_id, current_gw, mode)
+        
+    if err:
+        st.warning(f"Could not load race data: {err}")
+        return
+        
+    # 3. Render Chart
+    if df_race is not None and not df_race.empty:
+        fig_race = visualizations.create_race_bar_chart(df_race, entry_id, mode)
+        
+        # Use selection event (Streamlit 1.35+)
+        selection = st.plotly_chart(fig_race, use_container_width=True, on_select="rerun")
+        
+        # 4. Drilldown Panel
+        # Determine selected manager
+        selected_manager_id = entry_id # Default to user
+        
+        if selection and selection['selection']['points']:
+            # Try to get customdata from point selection
+            points = selection['selection']['points']
+            if points and 'customdata' in points[0]:
+                 selected_manager_id = points[0]['customdata']
+                 
+        # Fetch drilldown details
+        drilldown_mgr = df_race[df_race['entry_id'] == selected_manager_id]
+        
+        if not drilldown_mgr.empty:
+            mgr_row = drilldown_mgr.iloc[0]
+            mgr_name = mgr_row['player_name']
+            entry_name = mgr_row['entry_name']
+            rank = mgr_row['rank']
+            points = mgr_row['points']
+            gap = points - df_race[df_race['entry_id'] == entry_id].iloc[0]['points']
+            
+            with st.container():
+                st.markdown(f"### 🔎 Manager Drilldown: {entry_name}")
+                st.caption(f"Manager: {mgr_name} | Rank: #{rank}")
+                
+                # Metrics
+                c1, c2, c3, c4 = st.columns(4)
+                with c1: st.metric(race_mode.split()[0], points)
+                with c2: st.metric("Gap from You", f"{gap:+d}" if gap != 0 and selected_manager_id != entry_id else "-")
+                
+                # Fetch deeper history for sparkline and chips if selection changes
+                # (Simple caching handles this efficiency)
+                history = league_replay.fetch_entry_history(selected_manager_id)
+                
+                if history:
+                    # Chips
+                    chips_used = league_replay.get_chip_usage(history)
+                    with c3:
+                        st.metric("Chips Used", len(chips_used))
+                        if chips_used:
+                            st.caption(", ".join(chips_used))
+                        else:
+                            st.caption("None")
+                            
+                    # Sparkline (Last 5 GW)
+                    current_hist = history.get('current', [])
+                    if current_hist:
+                        last_5 = current_hist[-5:]
+                        gws = [x['event'] for x in last_5]
+                        pts = [x['points'] for x in last_5]
+                        
+                        # Create mini sparkline
+                        fig_spark = go.Figure(go.Scatter(x=gws, y=pts, mode='lines+markers', line_color='#00ff87'))
+                        fig_spark.update_layout(
+                            title="Last 5 GWs", margin=dict(t=30, l=10, r=10, b=10), height=100,
+                            xaxis=dict(showgrid=False, zeroline=False),
+                            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                            template='plotly_dark'
+                        )
+                        with c4:
+                            st.plotly_chart(fig_spark, use_container_width=True, config={'displayModeBar': False})
+                else:
+                    with c3: st.write("History unavailable.")
+                    
+        st.divider()
+
+
     st.header("My Team Comparison")
     st.markdown("Compare your team against the template of your mini-league.")
 
@@ -369,6 +468,9 @@ def main():
     # --- Render Overview Scorecard (always visible after league selection) ---
     if current_gw:
         render_overview_scorecard(entry_id, selected_league_id, current_gw, meta)
+        
+        # --- Render League Race (new feature) ---
+        render_league_race(selected_league_id, entry_id, current_gw)
     
     # Load League Data
     if 'current_league_id' not in st.session_state or st.session_state['current_league_id'] != selected_league_id:

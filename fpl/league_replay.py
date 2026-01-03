@@ -166,16 +166,25 @@ def fetch_entry_history(entry_id):
 
 def get_classic_leagues(entry_data):
     """
-    Extract strictly 'classic' leagues from the entry metadata.
+    Extract strictly 'invitational classic' leagues from the entry metadata.
+    Filters for:
+    - scoring='c' (Classic) which is implicit in the 'classic' key
+    - league_type='x' (Private/Invitational)
+    
     Returns a list of dicts: [{'id': 123, 'name': 'League Name'}, ...]
     """
     if not entry_data or 'leagues' not in entry_data or 'classic' not in entry_data['leagues']:
         return []
     
-    return [
+    # Filter for league_type == 'x' (Private/Invitational)
+    # Public leagues usually have league_type='s' (Global) or similar.
+    invitational_leagues = [
         {'id': league['id'], 'name': league['name']}
         for league in entry_data['leagues']['classic']
+        if league.get('league_type') == 'x'
     ]
+    
+    return invitational_leagues
 
 # =========================================================
 # SCORECARD FUNCTIONS
@@ -448,6 +457,108 @@ def compute_live_league_rank(standings_data, event_id, entry_id, live_data):
             return idx + 1  # 1-indexed rank
     
     return None
+
+def get_league_race_data(league_id, event_id, mode='total'):
+    """
+    Get data for the League Race bar chart.
+    
+    Args:
+        league_id: League ID
+        event_id: Current GW ID
+        mode: 'total' (Season points) or 'gw' (Live GW points)
+        
+    Returns:
+        DataFrame: [entry_id, player_name, entry_name, points, rank, gap_to_user]
+    """
+    # 1. Fetch Standings
+    standings_data = fetch_league_standings_cached(league_id)
+    if not standings_data:
+        return None, "Could not fetch standings."
+        
+    results = standings_data.get('standings', {}).get('results', [])
+    if not results:
+        return None, "No specific members found in this league."
+    
+    # Simple list of dicts to eventually turn into DF
+    managers = []
+    
+    if mode == 'total':
+        # Total Points Mode: Simpler, use standings data directly
+        for rank_idx, res in enumerate(results):
+            managers.append({
+                'entry_id': res['entry'],
+                'player_name': res['player_name'],
+                'entry_name': res['entry_name'],
+                'points': res['total'],
+                'rank': res['rank']
+            })
+            
+    else:
+        # GW Points Mode: Need live fetching
+        # Limit to top 50 if necessary to save API calls
+        race_results = results[:50]
+        
+        # We need live data for point calculation
+        live_data = fetch_event_live_cached(event_id)
+        if not live_data:
+            return None, "Could not fetch live event data."
+            
+        # Helper to fetch and compute
+        def fetch_and_compute(entry_id):
+            picks = fetch_picks_cached(entry_id, event_id)
+            if not picks:
+                return 0
+            return compute_live_gw_points(picks, live_data)
+        
+        # Concurrently fetch
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_entry = {executor.submit(fetch_and_compute, r['entry']): r for r in race_results}
+            
+            for future in concurrent.futures.as_completed(future_to_entry):
+                r = future_to_entry[future]
+                try:
+                    gw_points = future.result() or 0
+                except:
+                    gw_points = 0
+                
+                managers.append({
+                    'entry_id': r['entry'],
+                    'player_name': r['player_name'],
+                    'entry_name': r['entry_name'],
+                    'points': gw_points,
+                    'rank': r['rank'] # Keep season rank for reference
+                })
+        
+        # Sort by GW points desc
+        managers.sort(key=lambda x: x['points'], reverse=True)
+        # Re-assign rank based on GW performance (1 to N)
+        for i, m in enumerate(managers):
+            m['gw_rank'] = i + 1
+
+    df_race = pd.DataFrame(managers)
+    return df_race, None
+
+def get_chip_usage(history_data):
+    """
+    Analyze chip usage from history.
+    
+    Returns:
+        tuple: (list of used chips, list of remaining chips)
+    """
+    if not history_data or 'chips' not in history_data:
+        return [], ["WC1", "WC2", "FH", "BB", "TC"] # Approximate defaults
+        
+    used_chips = []
+    # Identify used chips
+    for chip in history_data['chips']:
+        chip_name = chip.get('name')
+        chip_gw = chip.get('event')
+        label = f"{chip_name} (GW{chip_gw})"
+        used_chips.append(label)
+        
+    # Ideally logic for remaining chips requires knowing what was available.
+    # Simplified: Just return used list for now.
+    return used_chips
 
 def process_league_history(league_id, progress_callback=None):
     """
