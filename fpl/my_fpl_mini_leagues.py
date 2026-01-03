@@ -256,9 +256,10 @@ def render_league_race(league_id, entry_id, current_gw):
                 else:
                     with c3: st.write("History unavailable.")
                     
-        st.divider()
 
 
+
+def render_my_team_comparison(selected_league_id, entry_id, member_map):
     st.header("My Team Comparison")
     st.markdown("Compare your team against the template of your mini-league.")
 
