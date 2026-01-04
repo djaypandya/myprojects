@@ -488,7 +488,7 @@ def get_league_race_data(league_id, event_id, mode='total'):
             managers.append({
                 'entry_id': res['entry'],
                 'player_name': res['player_name'],
-                'entry_name': res['entry_name'],
+                'entry_name': res['player_name'], # Use Manager Name as fallback
                 'points': res['total'],
                 'rank': res['rank']
             })

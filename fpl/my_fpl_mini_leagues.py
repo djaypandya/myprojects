@@ -190,7 +190,7 @@ def render_league_race(league_id, entry_id, current_gw):
         fig_race = visualizations.create_race_bar_chart(df_race, entry_id, mode)
         
         # Use selection event (Streamlit 1.35+)
-        selection = st.plotly_chart(fig_race, use_container_width=True, on_select="rerun")
+        selection = st.plotly_chart(fig_race, width='stretch', on_select="rerun")
         
         # 4. Drilldown Panel
         # Determine selected manager
@@ -214,8 +214,8 @@ def render_league_race(league_id, entry_id, current_gw):
             gap = points - df_race[df_race['entry_id'] == entry_id].iloc[0]['points']
             
             with st.container():
-                st.markdown(f"### 🔎 Manager Drilldown: {entry_name}")
-                st.caption(f"Manager: {mgr_name} | Rank: #{rank}")
+                st.markdown(f"### 🔎 Manager Drilldown: {mgr_name}")
+                st.caption(f"Rank: #{rank}")
                 
                 # Metrics
                 c1, c2, c3, c4 = st.columns(4)
@@ -230,9 +230,12 @@ def render_league_race(league_id, entry_id, current_gw):
                     # Chips
                     chips_used = league_replay.get_chip_usage(history)
                     with c3:
-                        st.metric("Chips Used", len(chips_used))
+                        st.markdown("**Chips**")
                         if chips_used:
-                            st.caption(", ".join(chips_used))
+                            badges = ""
+                            for chip in chips_used:
+                                badges += f"<span style='background-color:#333; color:#ddd; padding:2px 6px; border-radius:4px; font-size:0.8em; margin-right:4px; display:inline-block; margin-bottom:4px;'>{chip}</span>"
+                            st.markdown(badges, unsafe_allow_html=True)
                         else:
                             st.caption("None")
                             
@@ -252,7 +255,7 @@ def render_league_race(league_id, entry_id, current_gw):
                             template='plotly_dark'
                         )
                         with c4:
-                            st.plotly_chart(fig_spark, use_container_width=True, config={'displayModeBar': False})
+                            st.plotly_chart(fig_spark, width='stretch', config={'displayModeBar': False})
                 else:
                     with c3: st.write("History unavailable.")
                     
@@ -296,50 +299,53 @@ def render_season_trend(league_id, entry_id):
         # 1. Net Gain vs Leader
         metric_cols = st.columns(4)
         
+        # 1. Net Gain vs Leader
+        metric_cols = st.columns(4)
+        
         user_start = df_view.iloc[0]['user_points']
         user_end = df_view.iloc[-1]['user_points']
         user_gain = user_end - user_start
         
-        if 'leader_points' in df_view.columns and df_view['leader_points'].notnull().all():
-            leader_start = df_view.iloc[0]['leader_points']
-            leader_end = df_view.iloc[-1]['leader_points']
-            leader_gain = leader_end - leader_start
-            net_gain = user_gain - leader_gain
-            
-            with metric_cols[0]:
-                st.metric("Net Gain vs Leader", f"{net_gain:+d}", help="Points gained on leader in selection")
-        else:
-             with metric_cols[0]: st.metric("Points Gained", user_gain)
+        color_gain = "green" if user_gain >= 0 else "red"
+        
+        with metric_cols[0]:
+            if 'leader_points' in df_view.columns and df_view['leader_points'].notnull().all():
+                leader_start = df_view.iloc[0]['leader_points']
+                leader_end = df_view.iloc[-1]['leader_points']
+                leader_gain = leader_end - leader_start
+                net_gain = user_gain - leader_gain
+                color_net = "green" if net_gain >= 0 else "red"
+                st.markdown(f"**Net vs Leader**<br><span style='font-size:1.2em; color:{color_net}'>{net_gain:+d}</span>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"**Points Gained**<br><span style='font-size:1.2em; color:{color_gain}'>{user_gain}</span>", unsafe_allow_html=True)
 
         # 2. Best GW
         best_gw = df_view.loc[df_view['user_gw_points'].idxmax()]
         with metric_cols[1]:
-            st.metric("Best GW", f"{best_gw['user_gw_points']}pts", f"GW{best_gw['gw']}")
+             st.markdown(f"**Best GW**<br>{best_gw['user_gw_points']} (GW{best_gw['gw']})", unsafe_allow_html=True)
             
         # 3. Worst GW
         worst_gw = df_view.loc[df_view['user_gw_points'].idxmin()]
         with metric_cols[2]:
-            st.metric("Worst GW", f"{worst_gw['user_gw_points']}pts", f"GW{worst_gw['gw']}", delta_color="inverse")
+             st.markdown(f"**Worst GW**<br>{worst_gw['user_gw_points']} (GW{worst_gw['gw']})", unsafe_allow_html=True)
             
         # 4. Streak (Last 3)
         if len(df_view) >= 3 and 'leader_points' in df_view.columns:
             last_3 = df_view.tail(3)
             wins = 0
             for i in range(len(last_3) - 1):
-                # Did user gain on leader between i and i+1?
-                # Actually checking GW points comparison is simpler
-                u_gw = last_3.iloc[i+1]['user_points'] - last_3.iloc[i]['user_points'] # Close approx to gw_points (ignoring hits/transfer math for quick check)
+                u_gw = last_3.iloc[i+1]['user_points'] - last_3.iloc[i]['user_points']
                 l_gw = last_3.iloc[i+1]['leader_points'] - last_3.iloc[i]['leader_points']
                 if u_gw > l_gw: wins += 1
             
             streak_label = "Improving" if wins >= 2 else "Declining"
-            streak_color = "normal" if wins >= 2 else "inverse"
+            color_streak = "green" if wins >= 2 else "grey"
             with metric_cols[3]:
-                st.metric("Recent Run", streak_label, f"{wins}/2 vs Leader")
+                 st.markdown(f"**Recent Form**<br><span style='color:{color_streak}'>{streak_label}</span>", unsafe_allow_html=True)
 
         # Visual
         fig = visualizations.create_trend_line_chart(df_trend, metric_map, show_notes, range_opt)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
     st.divider()
 
@@ -464,7 +470,7 @@ def render_manager_comparison(league_id, entry_id, current_gw, member_map):
                 render_diff_table(rival_diff, f"Only {rival_name}")
                 
             # C. Shared Players
-            with st.expander(f"Shared Players ({len(shared)})", expanded=False):
+            with st.expander(f"Shared Players ({len(shared)})", expanded=(len(shared) <= 5 and len(shared) > 0)):
                 if shared:
                     # Prepare DF
                     shared_disp = []
@@ -521,7 +527,7 @@ def render_template_analysis(league_id, entry_id):
     
     # Chart
     fig_snap = visualizations.create_snapshot_chart(df_snap, impact_metric)
-    st.plotly_chart(fig_snap, use_container_width=True)
+    st.plotly_chart(fig_snap, width='stretch')
     
     # Insights
     st.markdown("### 🧠 Key Takeaways")
