@@ -344,6 +344,163 @@ def render_season_trend(league_id, entry_id):
     st.divider()
 
 
+def render_manager_comparison(league_id, entry_id, current_gw, member_map):
+    """
+    Render Manager Comparison (Head-to-Head) section.
+    """
+    st.header("⚔️ Manager Comparison (H2H)")
+    
+    # 1. Inputs
+    c1, c2, c3, c4 = st.columns([1, 2, 1, 1])
+    
+    with c1:
+        # GW Selector (MVP: just current GW or Input?)
+        # For MVP, simplify to Current GW or simple dropdown if we had list.
+        # We'll use current_gw as default.
+        selected_gw = st.number_input("Gameweek", min_value=1, max_value=38, value=current_gw)
+        
+    with c2:
+        # Rival Selector
+        # Filter member_map to exclude user
+        rival_options = {k: v for k, v in member_map.items() if k != entry_id}
+        default_rival = []
+        if rival_options:
+             # Default to first available (usually rank 1 if member map ordered by rank)
+             default_rival = [list(rival_options.keys())[0]]
+             
+        selected_rivals = st.multiselect(
+            "Select Rival(s)", 
+            options=rival_options.keys(),
+            format_func=lambda x: rival_options[x],
+            default=default_rival,
+            max_selections=5
+        )
+        
+    with c3:
+        include_bench = st.checkbox("Include Bench", value=False)
+        
+    with c4:
+        # Auto-refresh / Manual Refresh
+        if st.button("Refresh Live"):
+            st.rerun()
+            
+    if not selected_rivals:
+        st.info("Select a rival to compare.")
+        return
+
+    # 2. Fetch Data
+    with st.spinner("Fetching Head-to-Head data..."):
+        h2h_data, err = league_replay.get_h2h_comparison_data(entry_id, selected_rivals, selected_gw, include_bench)
+        
+    if err:
+        st.error(err)
+        return
+        
+    # 3. Render Comparisons
+    for rival_id in selected_rivals:
+        rival_name = rival_options.get(rival_id, str(rival_id))
+        data = h2h_data.get(rival_id, {})
+        
+        if 'error' in data:
+            st.warning(f"Could not load data for {rival_name}")
+            continue
+            
+        summary = data.get('summary', {})
+        shared = data.get('shared', [])
+        user_diff = data.get('user_diff', [])
+        rival_diff = data.get('rival_diff', [])
+        
+        # Determine container border color based on winner?
+        delta = summary['delta']
+        win_color = "green" if delta > 0 else "red" if delta < 0 else "grey"
+        
+        with st.container(border=True):
+            # A. Header Scoreboard
+            col_score1, col_score2, col_score3 = st.columns([1, 1, 1])
+            with col_score1:
+                st.metric("You", f"{summary['user_total']} pts")
+            with col_score2:
+                st.metric("Delta", f"{delta:+d}", delta_color="normal") # normal handles +/- colors automatically
+            with col_score3:
+                st.metric(rival_name, f"{summary['rival_total']} pts")
+            
+            # B. Differentials (The Key Driver)
+            st.subheader("Differentials")
+            diff_col1, diff_col2 = st.columns(2)
+            
+            def render_diff_table(diff_list, owner_name):
+                if not diff_list:
+                    st.caption("No unique players.")
+                    return
+                # Formatting
+                disp_data = []
+                total_contrib = 0
+                for d in diff_list:
+                    # Icon for status
+                    status = "✅" # Placeholder for fixture status
+                    if d['is_bench']: status = "🪑"
+                    if d['is_captain']: status += " (C)"
+                    
+                    disp_data.append({
+                        "Player": f"{d['web_name']} {status}",
+                        "Pts": d['points'],
+                        "Contrib": d['contrib']
+                    })
+                    total_contrib += d['contrib']
+                
+                st.markdown(f"**{owner_name}** (Impact: {total_contrib} pts)")
+                st.dataframe(
+                    pd.DataFrame(disp_data),
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Contrib": st.column_config.NumberColumn("Contrib", format="%d")
+                    }
+                )
+                
+            with diff_col1:
+                render_diff_table(user_diff, "Only You")
+            with diff_col2:
+                render_diff_table(rival_diff, f"Only {rival_name}")
+                
+            # C. Shared Players
+            with st.expander(f"Shared Players ({len(shared)})", expanded=False):
+                if shared:
+                    # Prepare DF
+                    shared_disp = []
+                    for s in shared:
+                        # Net Impact Label
+                        net = s['net_impact']
+                        net_str = f"{net:+d}" if net != 0 else "-"
+                        
+                        # Captain Markers
+                        u_info = f"{s['web_name']}"
+                        r_info = f"{s['web_name']}"
+                        if s['u_cap']: u_info += " (C)"
+                        if s['r_cap']: r_info += " (C)"
+                        
+                        shared_disp.append({
+                            "Player": s['web_name'],
+                            "Pts": s['points'],
+                            "Your Contrib": s['u_contrib'],
+                            "Rival Contrib": s['r_contrib'],
+                            "Net": net
+                        })
+                    
+                    st.dataframe(
+                        pd.DataFrame(shared_disp),
+                        use_container_width=True,
+                        hide_index=True,
+                        column_config={
+                             "Net": st.column_config.NumberColumn("Your Gain", format="%+d")
+                        }
+                    ) 
+                else:
+                    st.caption("No shared players.")
+
+    st.divider()
+
+
 def render_my_team_comparison(selected_league_id, entry_id, member_map):
     st.header("My Team Comparison")
     st.markdown("Compare your team against the template of your mini-league.")
@@ -560,7 +717,7 @@ def main():
         
         # --- Render Season Trend (new feature) ---
         render_season_trend(selected_league_id, entry_id)
-    
+        
     # Load League Data
     if 'current_league_id' not in st.session_state or st.session_state['current_league_id'] != selected_league_id:
         if st.button("Load League Data"):
@@ -575,12 +732,29 @@ def main():
                     st.rerun() # Rerun to show tabs immediately
     
     # Check if data is loaded
-    if st.session_state.get('current_league_id') == selected_league_id and st.session_state.get('league_df') is not None:
-        df_league = st.session_state['league_df']
-        
+    df_league = st.session_state.get('league_df')
+    member_map = {}
+    
+    if st.session_state.get('current_league_id') == selected_league_id and df_league is not None:
         # Determine Member Map from the dataframe for the comparison tool
         all_entries = df_league[['Entry ID', 'Name']].drop_duplicates()
         member_map = dict(zip(all_entries['Entry ID'], all_entries['Name']))
+        
+    # --- Render Manager Comparison (new feature) ---
+    # Needs member_map. If league data not loaded, we can try to fetch just the standings summary?
+    # Or just require League Data Load. But the Scorecard/Race above didn't require "Load League Data" (they fetch their own).
+    # Manager Comparison needs a list of rivals. We can fetch standings light-weight if member_map is empty.
+    
+    if current_gw:
+        # If member_map is empty (no league loaded), try quick fetch
+        if not member_map:
+             s_data = league_replay.fetch_league_standings_cached(selected_league_id)
+             if s_data and 'standings' in s_data:
+                 for r in s_data['standings']['results']:
+                     member_map[r['entry']] = r['player_name']
+                     
+        if member_map:
+             render_manager_comparison(selected_league_id, entry_id, current_gw, member_map)
 
         # --- Step 3: Tabs ---
         st.divider()

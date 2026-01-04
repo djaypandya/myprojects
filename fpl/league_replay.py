@@ -662,6 +662,199 @@ def get_season_trend_data(league_id, user_entry_id):
     df = pd.DataFrame(records)
     return df, None
 
+    return df, None
+
+def get_h2h_comparison_data(user_entry_id, rival_ids, event_id, include_bench=False):
+    """
+    Fetch and compute Head-to-Head comparison data.
+    
+    Args:
+        user_entry_id: User's Entry ID
+        rival_ids: List of Rival Entry IDs
+        event_id: GW ID
+        include_bench: Boolean to include bench players (visual only usually)
+        
+    Returns:
+        dict: {rival_id: {summary: {}, shared: [], user_diff: [], rival_diff: []}}
+    """
+    # 1. Fetch Picks Concurrently
+    all_managers = [user_entry_id] + rival_ids
+    picks_map = {}
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_map = {executor.submit(fetch_picks_cached, eid, event_id): eid for eid in all_managers}
+        for future in concurrent.futures.as_completed(future_map):
+            eid = future_map[future]
+            try:
+                picks_map[eid] = future.result()
+            except:
+                picks_map[eid] = None
+                
+    if not picks_map.get(user_entry_id):
+        return None, "Could not fetch your picks."
+        
+    # 2. Fetch Live Data & Static
+    live_data = fetch_event_live_cached(event_id)
+    bootstrap = fetch_bootstrap_static()
+    
+    if not live_data or not bootstrap:
+        return None, "Could not fetch live/static data."
+        
+    # Helper to process a manager's picks into a set and detailed map
+    def process_picks(picks_json):
+        if not picks_json: return set(), {}
+        player_set = set()
+        details = {} # {element_id: {multiplier, is_captain, ...}}
+        
+        for pick in picks_json.get('picks', []):
+            el_id = pick['element']
+            mult = pick['multiplier']
+            is_cap = pick['is_captain']
+            is_vc = pick['is_vice_captain']
+            
+            # Bench handling: usually bench has multiplier 0. 
+            # If include_bench is True, we treat them as part of the set.
+            # However, for points calculation, we usually stick to multiplier.
+            # User Constraint: "include bench (multiplier == 0) but label as bench"
+            
+            # Logic: If multiplier > 0, always include.
+            # If multiplier == 0: include ONLY IF include_bench is True.
+            
+            if mult > 0 or include_bench:
+                player_set.add(el_id)
+                details[el_id] = {
+                    'multiplier': mult,
+                    'is_captain': is_cap,
+                    'is_vice_captain': is_vc,
+                    'is_bench': mult == 0
+                }
+        return player_set, details
+
+    user_set, user_details = process_picks(picks_map.get(user_entry_id))
+    
+    # 3. Compare with each Rival
+    comparison_results = {}
+    
+    # Helper to look up player info
+    def get_player_info(el_id):
+        # bootstrap 'elements' list
+        for p in bootstrap['elements']:
+            if p['id'] == el_id:
+                team = next((t for t in bootstrap['teams'] if t['id'] == p['team']), {})
+                return {
+                    'web_name': p['web_name'],
+                    'position': p['element_type'], # 1=GKP, etc
+                    'team_short_name': team.get('short_name', ''),
+                    'cost': p['now_cost'] / 10.0
+                }
+        return {'web_name': str(el_id), 'position': 0, 'team_short_name': '', 'cost': 0}
+
+    # Helper to get live points
+    def get_points(el_id):
+        # live_data['elements'] is a list of dicts {id: X, stats: {total_points: Y}}
+        for el in live_data.get('elements', []):
+            if el['id'] == el_id:
+                return el['stats']['total_points']
+        return 0
+
+    for r_id in rival_ids:
+        r_picks = picks_map.get(r_id)
+        if not r_picks:
+             comparison_results[r_id] = {'error': 'Could not fetch picks'}
+             continue
+             
+        rival_set, rival_details = process_picks(r_picks)
+        
+        shared = user_set.intersection(rival_set)
+        user_only = user_set - rival_set
+        rival_only = rival_set - user_set
+        
+        # Build Data Lists
+        shared_list = []
+        user_diff_list = []
+        rival_diff_list = []
+        
+        user_total_score = 0
+        rival_total_score = 0
+        
+        # --- SHARED ---
+        for el in shared:
+            info = get_player_info(el)
+            pts = get_points(el)
+            
+            u_mult = user_details[el]['multiplier']
+            r_mult = rival_details[el]['multiplier']
+            
+            u_contrib = pts * u_mult
+            r_contrib = pts * r_mult
+            
+            # Only add to total if it's not bench (unless logic dictates otherwise, but std scoring implies multiplier usage)
+            user_total_score += u_contrib
+            rival_total_score += r_contrib
+            
+            shared_list.append({
+                'web_name': info['web_name'],
+                'team': info['team_short_name'],
+                'position': info['position'],
+                'points': pts,
+                'u_mult': u_mult,
+                'r_mult': r_mult,
+                'u_contrib': u_contrib,
+                'r_contrib': r_contrib,
+                'net_impact': u_contrib - r_contrib,
+                'u_cap': user_details[el]['is_captain'],
+                'r_cap': rival_details[el]['is_captain']
+            })
+            
+        # --- USER DIFF ---
+        for el in user_only:
+            info = get_player_info(el)
+            pts = get_points(el)
+            mult = user_details[el]['multiplier']
+            contrib = pts * mult
+            user_total_score += contrib
+            
+            user_diff_list.append({
+                'web_name': info['web_name'],
+                'team': info['team_short_name'],
+                'position': info['position'],
+                'points': pts,
+                'contrib': contrib,
+                'is_bench': user_details[el]['is_bench'],
+                'is_captain': user_details[el]['is_captain']
+            })
+            
+        # --- RIVAL DIFF ---
+        for el in rival_only:
+            info = get_player_info(el)
+            pts = get_points(el)
+            mult = rival_details[el]['multiplier']
+            contrib = pts * mult
+            rival_total_score += contrib
+            
+            rival_diff_list.append({
+                'web_name': info['web_name'],
+                'team': info['team_short_name'],
+                'position': info['position'],
+                'points': pts,
+                'contrib': contrib,
+                'is_bench': rival_details[el]['is_bench'],
+                'is_captain': rival_details[el]['is_captain']
+            })
+            
+        comparison_results[r_id] = {
+            'summary': {
+                'user_total': user_total_score,
+                'rival_total': rival_total_score,
+                'delta': user_total_score - rival_total_score
+            },
+            'shared': sorted(shared_list, key=lambda x: abs(x['net_impact']), reverse=True),
+            'user_diff': sorted(user_diff_list, key=lambda x: x['contrib'], reverse=True),
+            'rival_diff': sorted(rival_diff_list, key=lambda x: x['contrib'], reverse=True)
+        }
+        
+    return comparison_results, None
+
 def process_league_history(league_id, progress_callback=None):
     """
     Orchestrates the data fetching and processing for the league replay.
