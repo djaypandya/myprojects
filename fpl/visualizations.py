@@ -332,7 +332,7 @@ def create_race_bar_chart(df, user_id, mode):
         gap_str = f"{gap:+d}" if gap != 0 and user_row is not None else ""
         if eid == user_id: gap_str = "(You)"
         
-        label = f"#{rank} {row['entry_name']} ({pts})"
+        label = f"#{rank} {row['player_name']} ({pts})"
         # If wide enough, append gap. We'll use hover for detailed gap mostly.
         text_labels.append(label)
         
@@ -340,14 +340,14 @@ def create_race_bar_chart(df, user_id, mode):
     
     fig.add_trace(go.Bar(
         x=df_chart['points'],
-        y=df_chart['player_name'] + " (" + df_chart['entry_name'] + ")", # Unique Y keys
+        y=df_chart['player_name'], # Unique Y keys
         orientation='h',
         marker_color=colors,
         text=text_labels,
         textposition='auto',
         hoverinfo='text',
         hovertext=[
-            f"<b>{r['entry_name']}</b><br>Manager: {r['player_name']}<br>Points: {r['points']}<br>Gap: {r['points']-user_points:+d}" 
+            f"<b>{r['player_name']}</b><br>Points: {r['points']}<br>Gap: {r['points']-user_points:+d}" 
             for _, r in df_chart.iterrows()
         ],
         customdata=df_chart['entry_id'] # For click events

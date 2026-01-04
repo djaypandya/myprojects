@@ -524,7 +524,7 @@ def get_league_race_data(league_id, event_id, mode='total'):
                 managers.append({
                     'entry_id': r['entry'],
                     'player_name': r['player_name'],
-                    'entry_name': r['entry_name'],
+                    'entry_name': r['player_name'], # Use Manager Name as fallback for entry_name
                     'points': gw_points,
                     'rank': r['rank'] # Keep season rank for reference
                 })
@@ -885,7 +885,7 @@ def process_league_history(league_id, progress_callback=None):
     MAX_MEMBERS = 50
     members = standings_results[:MAX_MEMBERS]
     
-    member_map = {m['entry']: m['player_name'] + f" ({m['entry_name']})" for m in members}
+    member_map = {m['entry']: m['player_name'] for m in members}
     entry_ids = [m['entry'] for m in members]
     
     # 2. Fetch Histories Concurrently
