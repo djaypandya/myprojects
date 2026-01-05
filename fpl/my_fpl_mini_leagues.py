@@ -63,10 +63,21 @@ def render_overview_scorecard(entry_id, league_id, current_gw, meta):
             st.warning("⚠️ Some live data unavailable; showing latest known values.")
         
         # Compute metrics
-        # 1. GW Points (Live)
-        gw_points = league_replay.compute_live_gw_points(picks_data, live_data)
-        if gw_points is None and meta:
-            gw_points = meta.get('summary_event_points', 'N/A')
+        # 1. GW Points (Live) - Effective (Raw - Hits)
+        raw_points = league_replay.compute_live_gw_points(picks_data, live_data)
+        gw_cost = picks_data.get('entry_history', {}).get('event_transfers_cost', 0) if picks_data else 0
+        
+        gw_points_display = "N/A"
+        gw_delta = None
+        
+        if raw_points is not None:
+            effective_points = raw_points - gw_cost
+            gw_points_display = effective_points
+            if gw_cost > 0:
+                gw_delta = f"-{gw_cost} cost"
+        elif meta:
+             # Fallback
+             gw_points_display = meta.get('summary_event_points', 'N/A')
         
         # 2. Standings info (for season metrics)
         standings_info = league_replay.get_standings_info(standings_data, entry_id)
@@ -104,7 +115,7 @@ def render_overview_scorecard(entry_id, league_id, current_gw, meta):
             # 8 tiles: 4 + 4
             cols = st.columns(4)
             with cols[0]:
-                st.metric("GW Points (Live)", gw_points if gw_points is not None else 'N/A')
+                st.metric("GW Points (Live)", gw_points_display, delta=gw_delta, delta_color="inverse")
             with cols[1]:
                 st.metric("Live GW Rank", live_league_rank if live_league_rank else 'N/A')
             with cols[2]:
@@ -131,7 +142,7 @@ def render_overview_scorecard(entry_id, league_id, current_gw, meta):
             # 7 tiles (no live rank): 4 + 3
             cols = st.columns(4)
             with cols[0]:
-                st.metric("GW Points (Live)", gw_points if gw_points is not None else 'N/A')
+                st.metric("GW Points (Live)", gw_points_display, delta=gw_delta, delta_color="inverse")
             with cols[1]:
                 st.metric("Overall Points", overall_points)
             with cols[2]:
@@ -423,12 +434,19 @@ def render_manager_comparison(league_id, entry_id, current_gw, member_map):
         with st.container(border=True):
             # A. Header Scoreboard
             col_score1, col_score2, col_score3 = st.columns([1, 1, 1])
+            
+            u_cost = summary.get('user_cost', 0)
+            r_cost = summary.get('rival_cost', 0)
+            
+            u_delta = f"-{u_cost} hit" if u_cost > 0 else None
+            r_delta = f"-{r_cost} hit" if r_cost > 0 else None
+            
             with col_score1:
-                st.metric("You", f"{summary['user_total']} pts")
+                st.metric("You", f"{summary['user_total']} pts", delta=u_delta, delta_color="inverse")
             with col_score2:
-                st.metric("Delta", f"{delta:+d}", delta_color="normal") # normal handles +/- colors automatically
+                st.metric("Delta", f"{delta:+d}", delta_color="normal")
             with col_score3:
-                st.metric(rival_name, f"{summary['rival_total']} pts")
+                st.metric(rival_name, f"{summary['rival_total']} pts", delta=r_delta, delta_color="inverse")
             
             # B. Differentials (The Key Driver)
             st.subheader("Differentials")

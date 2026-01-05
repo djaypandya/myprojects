@@ -440,7 +440,9 @@ def compute_live_league_rank(standings_data, event_id, entry_id, live_data):
         mgr_total = manager.get('total', 0)
         
         picks = fetch_picks_cached(mgr_entry_id, event_id)
-        live_pts = compute_live_gw_points(picks, live_data) if picks else 0
+        raw_pts = compute_live_gw_points(picks, live_data) if picks else 0
+        cost = picks.get('entry_history', {}).get('event_transfers_cost', 0) if picks else 0
+        live_pts = (raw_pts or 0) - cost
         
         manager_scores.append({
             'entry_id': mgr_entry_id,
@@ -508,7 +510,9 @@ def get_league_race_data(league_id, event_id, mode='total'):
             picks = fetch_picks_cached(entry_id, event_id)
             if not picks:
                 return 0
-            return compute_live_gw_points(picks, live_data)
+            raw = compute_live_gw_points(picks, live_data)
+            cost = picks.get('entry_history', {}).get('event_transfers_cost', 0)
+            return raw - cost
         
         # Concurrently fetch
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
@@ -842,11 +846,20 @@ def get_h2h_comparison_data(user_entry_id, rival_ids, event_id, include_bench=Fa
                 'is_captain': rival_details[el]['is_captain']
             })
             
+        # Deduct Transfer Costs
+        user_cost = picks_map.get(user_entry_id, {}).get('entry_history', {}).get('event_transfers_cost', 0)
+        rival_cost = r_picks.get('entry_history', {}).get('event_transfers_cost', 0)
+        
+        user_total_score -= user_cost
+        rival_total_score -= rival_cost
+        
         comparison_results[r_id] = {
             'summary': {
                 'user_total': user_total_score,
                 'rival_total': rival_total_score,
-                'delta': user_total_score - rival_total_score
+                'delta': user_total_score - rival_total_score,
+                'user_cost': user_cost,
+                'rival_cost': rival_cost
             },
             'shared': sorted(shared_list, key=lambda x: abs(x['net_impact']), reverse=True),
             'user_diff': sorted(user_diff_list, key=lambda x: x['contrib'], reverse=True),
