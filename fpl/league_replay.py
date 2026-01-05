@@ -1151,3 +1151,100 @@ def get_league_snapshot_data(league_id, my_entry_id=None):
         
     df = pd.DataFrame(snapshot_rows)
     return {'df': df, 'gw': current_gw, 'num_managers': num_managers}, None
+
+def get_position_name(type_id):
+    mapping = {1: 'GK', 2: 'DEF', 3: 'MID', 4: 'FWD'}
+    return mapping.get(type_id, '?')
+
+def get_gw_transfer_summary(picks_data):
+    """
+    Extracts transfer and chip info from picks response.
+    """
+    if not picks_data:
+        return {'transfers': 0, 'cost': 0, 'active_chip': None}
+        
+    hist = picks_data.get('entry_history', {})
+    return {
+        'transfers': hist.get('event_transfers', 0),
+        'cost': hist.get('event_transfers_cost', 0),
+        'active_chip': picks_data.get('active_chip') # 'wc', 'fh', 'bb', 'tc' or None
+    }
+
+def get_gw_team_details(picks_data, live_data, bootstrap_data, fixtures_data):
+    """
+    Returns structured data for the Team Overview table.
+    """
+    if not picks_data or not live_data or not bootstrap_data:
+        return []
+
+    picks = picks_data.get('picks', [])
+    elements_map = {e['id']: e for e in bootstrap_data['elements']}
+    teams_map = {t['id']: t for t in bootstrap_data['teams']}
+    
+    # Map Live Stats
+    live_stats = {}
+    for el in live_data.get('elements', []):
+        live_stats[el['id']] = el.get('stats', {})
+
+    # Fixture Status
+    team_status = get_fixture_status_map(fixtures_data, bootstrap_data)
+    
+    rows = []
+    
+    # Sort picks: XI first (1-11), then Bench (12-15) - usually sorted by 'position' field in picks (1-15)
+    sorted_picks = sorted(picks, key=lambda x: x['position'])
+    
+    for pick in sorted_picks:
+        el_id = pick['element']
+        el_info = elements_map.get(el_id, {})
+        stats = live_stats.get(el_id, {})
+        team_id = el_info.get('team')
+        team = teams_map.get(team_id, {})
+        
+        # Status
+        t_stat = team_status.get(team_id, {'started': False, 'finished': False})
+        if t_stat['finished']:
+            status = "Finished"
+        elif t_stat['started']:
+            status = "Playing"
+        else:
+            status = "Upcoming"
+            
+        # Stats Breakdown
+        breakdown = []
+        if stats.get('goals_scored'): breakdown.append(f"{stats['goals_scored']}⚽")
+        if stats.get('assists'): breakdown.append(f"{stats['assists']}🅰️")
+        if stats.get('clean_sheets') and el_info.get('element_type') <= 2: breakdown.append("🧱") # GK/DEF
+        
+        saves = stats.get('saves', 0)
+        if saves >= 3: breakdown.append(f"{saves}🧤") 
+        
+        if stats.get('penalties_saved'): breakdown.append("🛡️")
+        if stats.get('penalties_missed'): breakdown.append("❌")
+        if stats.get('own_goals'): breakdown.append("🎯") # unfortunate
+        if stats.get('yellow_cards'): breakdown.append("🟨")
+        if stats.get('red_cards'): breakdown.append("🟥")
+        if stats.get('bonus'): breakdown.append(f"{stats['bonus']}⭐")
+        
+        stats_str = " ".join(breakdown)
+        
+        pos_id = el_info.get('element_type', 0)
+        
+        # Total with multiplier
+        raw_pts = stats.get('total_points', 0)
+        mult = pick['multiplier']
+        contrib = raw_pts * mult
+        
+        rows.append({
+            'Player': f"{el_info.get('web_name', '')} ({team.get('short_name', '')})",
+            'Pos': get_position_name(pos_id),
+            'Status': status,
+            'Mult': mult,
+            'GW Pts': raw_pts,
+            'Stats': stats_str,
+            'Contrib': contrib,
+            'is_bench': mult == 0, # Helper for styling
+            'raw_pts': raw_pts # Helper for sorting
+        })
+        
+    return rows

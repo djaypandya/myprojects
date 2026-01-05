@@ -170,6 +170,103 @@ def render_overview_scorecard(entry_id, league_id, current_gw, meta):
         st.divider()
 
 
+def render_team_overview(entry_id, current_gw, bootstrap):
+    """
+    Renders the 'Current Week Team Overview' section.
+    """
+    st.header(f"📋 Team Overview (GW {current_gw})")
+    
+    # Fetch Data
+    with st.spinner("Loading team status..."):
+        try:
+            live_data = league_replay.fetch_event_live_cached(current_gw)
+            fixtures_data = league_replay.fetch_fixtures_cached(current_gw)
+            picks_data = league_replay.fetch_picks_cached(entry_id, current_gw)
+        except Exception as e:
+            st.error(f"Could not load team data: {e}")
+            return
+
+    if not picks_data or not live_data:
+        st.warning("Team data unavailable.")
+        return
+
+    # Process Data
+    rows = league_replay.get_gw_team_details(picks_data, live_data, bootstrap, fixtures_data)
+    transfer_info = league_replay.get_gw_transfer_summary(picks_data)
+    
+    if not rows:
+        st.info("No player data found.")
+        return
+
+    # Calculate Summary Metrics
+    starters = [r for r in rows if r['Mult'] > 0]
+    
+    # Played Status (Starters Only)
+    n_finished = sum(1 for r in starters if r['Status'] == 'Finished')
+    n_playing = sum(1 for r in starters if r['Status'] == 'Playing')
+    total_starters = len(starters)
+    played_str = f"{n_finished}/{total_starters}"
+    if n_playing > 0:
+        played_str += f" (+{n_playing} playing)"
+    
+    # Points
+    gw_points = sum(r['Contrib'] for r in rows) # Raw
+    cost = transfer_info['cost']
+    effective_points = gw_points - cost
+    
+    # Render Container
+    with st.container(border=True):
+        # A. Summary Bar
+        k1, k2, k3, k4, k5 = st.columns(5)
+        
+        with k1:
+            st.metric("GW Points", effective_points, delta=f"-{cost} cost" if cost > 0 else None, delta_color="inverse")
+        with k2:
+            st.metric("Played", played_str, help="Starters finished / Total starters")
+        with k3:
+            chip = transfer_info['active_chip']
+            chip_lbl = chip.upper() if chip else "None"
+            st.metric("Chip", chip_lbl)
+        with k4:
+            # Transfers
+            n_trans = transfer_info['transfers']
+            st.metric("Transfers", f"{n_trans}", delta=f"-{cost} cost" if cost > 0 else None, delta_color="inverse")
+        with k5:
+            # Value
+            val = picks_data.get('entry_history', {}).get('value', 0) / 10.0
+            bank = picks_data.get('entry_history', {}).get('bank', 0) / 10.0
+            st.metric("Team Value", f"£{val}m", f"£{bank}m bank")
+            
+        st.divider()
+        
+        # B. Detailed Table
+        df = pd.DataFrame(rows)
+        
+        # Sorting: Mult descending, then Status
+        status_rank = {'Finished': 1, 'Playing': 2, 'Upcoming': 3}
+        df['status_rank'] = df['Status'].map(status_rank)
+        df = df.sort_values(by=['Mult', 'status_rank', 'Contrib'], ascending=[False, True, False])
+        
+        # Styling / Config
+        disp_cols = ['Player', 'Pos', 'Status', 'Mult', 'GW Pts', 'Stats', 'Contrib']
+        
+        st.dataframe(
+            df[disp_cols],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Player": st.column_config.TextColumn("Player", width="large"),
+                "Pos": st.column_config.TextColumn("Pos", width="small"),
+                "Status": st.column_config.TextColumn("Status", width="medium"),
+                "Mult": st.column_config.NumberColumn("Mult", format="%d"),
+                "GW Pts": st.column_config.NumberColumn("Raw Pts", format="%d"),
+                "Stats": st.column_config.TextColumn("Breakdown", width="medium"),
+                "Contrib": st.column_config.NumberColumn("Total", format="%d"),
+            },
+            height=560 
+        )
+        
+    st.write("")
 def render_league_race(league_id, entry_id, current_gw):
     """
     Render the interactive League Race visual.
@@ -643,6 +740,9 @@ def main():
     # --- Render Overview Scorecard (always visible after league selection) ---
     if current_gw:
         render_overview_scorecard(entry_id, selected_league_id, current_gw, meta)
+        
+        # --- Team Overview (Hub) ---
+        render_team_overview(entry_id, current_gw, bootstrap)
         
         # --- Render League Race (new feature) ---
         render_league_race(selected_league_id, entry_id, current_gw)
